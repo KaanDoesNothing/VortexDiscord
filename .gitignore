@@ -1,6 +1,9 @@
 .idea/
-image/
 */.vscode
 */.env
 backup/
 */deno.lock
+*/node_modules/
+*/package-lock.json
+*/dist
+*/yarn.lock
