@@ -37,7 +37,7 @@ export class VortexClient extends CommandClient {
             }
         }
 
-        this.MusicManager = new musicManager(this);
+        // this.MusicManager = new musicManager(this);
     }
 
     async initialize(): Promise<void> {
