@@ -1,0 +1,55 @@
+import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
+import { VortexCommand } from "../../lib/Command.ts";
+import { GuildWarnTable } from "../../lib/Database.ts";
+import { throws } from "https://deno.land/std@0.177.0/node/assert.ts";
+
+export default class PlayCommand extends VortexCommand {
+    initialize(): void {
+        this.config = {
+            name: "play",
+            description: "Play a song",
+            options: [
+                {
+                    name: "song",
+                    required: true,
+                    description: "URL or Name",
+                    type: ApplicationCommandOptionType.STRING
+                }
+            ]
+        }
+
+        this.userPermissions.push("MANAGE_MEMBERS");
+    }
+
+    async exec(ctx: ApplicationCommandInteraction): Promise<void> {
+        const url = ctx.option("song") as string;
+
+        const MusicManager = this.client.MusicManager;
+
+        const res = await MusicManager.manager.search(url, ctx.user);
+
+        console.log(res);
+		// let player = MusicManager.manager.get(ctx.guild.id);
+
+		// if(!player) {
+		// 	player = MusicManager.manager.create({
+		// 		guild: ctx.guild.id,
+		// 		voiceChannel: ctx.member.c,
+		// 		textChannel: msg.channel.id
+		// 	});
+			
+		// 	player.connect();
+		// }
+
+		// player.queue.add(res.tracks[0]);
+		// msg.channel.send(`Added ${res.tracks[0].title} to the queue`);
+
+		// if (!player.playing && !player.paused && !player.queue.size) { 
+		// 	await player.play();
+		// }
+
+		// if (!player.playing && !player.paused && player.queue.totalSize === res.tracks.length) {
+		// 	await player.play();
+		// }
+    }
+}

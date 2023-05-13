@@ -1,0 +1,6 @@
+.idea/
+image/
+*/.vscode
+*/.env
+backup/
+*/deno.lock
