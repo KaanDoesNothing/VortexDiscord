@@ -11,7 +11,7 @@ import { musicManager } from "./MusicManager.ts";
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, {instance: VortexCommand, information: {category: string}}>}
     public statistics: {commands: {ran: number}, messages: {read: number}};
-    MusicManager: musicManager;
+    // MusicManager: musicManager;
     constructor() {
         super({
             token: env().DISCORD_TOKEN as string,
@@ -36,6 +36,8 @@ export class VortexClient extends CommandClient {
                 read: 0
             }
         }
+
+        import("./API/index.ts");
 
         // this.MusicManager = new musicManager(this);
     }
