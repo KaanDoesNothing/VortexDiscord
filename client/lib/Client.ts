@@ -6,7 +6,6 @@ import { VortexCommand } from "./Command.ts";
 import { ClientMissingPermission, MemberMissingPermission } from "./Language.ts";
 import { EmojiDislike, EmojiLike, MessagesToLevel } from "./Constant.ts";
 import { VortexEmbed } from "./Embed.ts";
-import { musicManager } from "./MusicManager.ts";
 
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, {instance: VortexCommand, information: {category: string}}>}
@@ -38,8 +37,6 @@ export class VortexClient extends CommandClient {
         }
 
         import("./API/index.ts");
-
-        // this.MusicManager = new musicManager(this);
     }
 
     async initialize(): Promise<void> {
@@ -83,7 +80,7 @@ export class VortexClient extends CommandClient {
         //     clientId: this.user.id.toString()
         // });
 
-        this.setPresence({name: `/announcement, (Important) ${await this.guilds.size()} Servers`, url: `https://www.twitch.tv/${this.user?.username}`, type: 1 })
+        this.setPresence({name: `/announcement, (Important) ${await this.guilds.size()} Servers`, url: `https://www.twitch.tv/${this.user?.username}`, type: 1 });
     }
 
     @event()

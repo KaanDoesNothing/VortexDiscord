@@ -9,6 +9,7 @@ informationRouter.get("/commands", (ctx) => {
     client.executables.commands.forEach(cmd => {
         commands.push({
             name: cmd.instance.config.name,
+            description: cmd.instance.config.description,
             category: cmd.information.category,
             permissions: cmd.instance.userPermissions,
             arguments: cmd.instance.config.options || []
@@ -16,4 +17,12 @@ informationRouter.get("/commands", (ctx) => {
     });
 
     ctx.response.body = commands;
+});
+
+informationRouter.get("/client", (ctx) => {
+    ctx.response.body = {
+        id: client.user.id,
+        username: client.user.username,
+        avatar: client.user.avatarURL("webp", 2048)
+    }
 });

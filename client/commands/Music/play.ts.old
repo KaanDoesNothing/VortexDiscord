@@ -24,9 +24,9 @@ export default class PlayCommand extends VortexCommand {
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {
         const url = ctx.option("song") as string;
 
-        const MusicManager = this.client.MusicManager;
+        // const MusicManager = this.client.MusicManager;
 
-        const res = await MusicManager.manager.search(url, ctx.user);
+        const res = await this.client.vulkava.search(url);
 
         console.log(res);
 		// let player = MusicManager.manager.get(ctx.guild.id);
