@@ -23,7 +23,7 @@
         </div>
         <div class="navbar-end">
             <template v-if="!sessionStore.user">
-                <a class="btn bg-primary text-neutral normal-case rounded" :href="inviteDetails.link">Login with Discord</a>
+                <a class="btn text-neutral-content normal-case rounded" :href="inviteDetails.link">Login with Discord</a>
             </template>
             <template v-if="sessionStore.user">
                 <RouterLink to="/dashboard/guilds" class="btn text-neutral-content normal-case rounded">Manage Servers</RouterLink>
