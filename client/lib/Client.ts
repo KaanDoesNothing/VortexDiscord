@@ -176,6 +176,16 @@ export class VortexClient extends CommandClient {
 
             await guildUserData.save();   
         }
+
+        guildData.settings.blacklist.words.forEach((word: string) => {
+            if(msg.content.includes(word)) {
+                try {
+                    msg.delete();
+                }catch(err) {
+                    console.log(err);
+                }
+            }
+        })
     }
 
     @event()

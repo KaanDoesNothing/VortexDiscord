@@ -56,6 +56,9 @@ const GuildSchema = new mongoose.Schema({
             experience: {
                 enabled: {type: mongoose.SchemaTypes.Boolean, default: false}
             }
+        },
+        blacklist: {
+            words: {type: mongoose.SchemaTypes.Array, default: []}
         }
     }
 }, {timestamps: true});
