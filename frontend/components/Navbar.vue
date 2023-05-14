@@ -22,27 +22,23 @@
             </ul>
         </div>
         <div class="navbar-end">
-            <a class="btn bg-primary text-neutral normal-case rounded">Login with Discord</a>
+            <template v-if="!sessionStore.user">
+                <a class="btn bg-primary text-neutral normal-case rounded" :href="inviteDetails.link">Login with Discord</a>
+            </template>
+            <template v-if="sessionStore.user">
+                <RouterLink to="/dashboard/guilds" class="btn text-neutral-content normal-case rounded">Manage Servers</RouterLink>
+            </template>
         </div>
     </div>
-    <!-- <div class="navbar bg-neutral text-neutral-content p-3">
-        <div class="navbar-start">
-            <img :src="generalStore.client_info?.avatar" class="h-10 w-10 mr-2 rounded-full"/>
-            <RouterLink to="/" class="font-sans font-bold text-2xl">{{generalStore.client_info?.username}}</RouterLink>
-        </div>
-        <div class="navbar-center">
-            <RouterLink to="/commands" class="btn">Commands</RouterLink>
-            <RouterLink to="/privacy" class="btn">Privacy</RouterLink>
-            <RouterLink to="/status" class="btn">Status</RouterLink>
-        </div>
-        <div class="navbar-end">
-            <a class="btn bg-primary text-neutral normal-case rounded">Login with Discord</a>
-        </div>
-    </div> -->
 </template>
 
 <script lang="ts" setup>
 import { useGeneralStore } from "@/stores/general";
+import { useSessionStore } from "@/stores/session";
 
-const generalStore = useGeneralStore();    
+const config = useRuntimeConfig();
+const generalStore = useGeneralStore();  
+const sessionStore = useSessionStore();
+
+const inviteDetails = await $fetch<any>(`${config.public.api}/authentication/details`);
 </script>

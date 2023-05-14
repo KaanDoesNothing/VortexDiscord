@@ -6,7 +6,7 @@
             <label class="text-2xl">Designed with simplicity in mind</label>
 
             <br>
-            <a class="underline" :href="`https://discord.com/oauth2/authorize?client_id=${generalStore.client_info.id}&scope=bot&permissions=1099511627767`">Click here to get started!</a>
+            <a class="underline animate-bounce" :href="`https://discord.com/oauth2/authorize?client_id=${generalStore.client_info.id}&scope=bot&permissions=1099511627767`">Click here to get started!</a>
         </div>
     </div>
 </template>
