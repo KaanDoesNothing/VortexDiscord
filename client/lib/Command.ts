@@ -37,7 +37,7 @@ export class VortexCommand {
                 }else if(option.type === ApplicationCommandOptionType.STRING) {
                     return `--${option.name}="Text"`;
                 }else if(option.type === ApplicationCommandOptionType.NUMBER) {
-                    return `--${option.name}=Number`;
+                    return `--${option.name} Number`;
                 }
             }).join(" ")
         }
