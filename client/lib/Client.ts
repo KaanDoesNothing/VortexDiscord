@@ -11,6 +11,7 @@ import * as commands from "../commands/mod.ts";
 import { musicManager } from "./MusicManager.ts";
 import { lavaNode } from "./lavalink.ts";
 import argsParser from "npm:yargs";
+import { VortexEmbed } from "./Embed.ts";
 
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, VortexCommand>}
@@ -74,7 +75,7 @@ export class VortexClient extends CommandClient {
             const instance = new command(this);
             console.log(`Command Loaded: ${instance.config.name}`);
 
-            if(!instance.config.options) instance.config.options = [];
+            instance.after();
 
             list.push(instance.config);
 
@@ -247,7 +248,7 @@ export class VortexClient extends CommandClient {
             if(!command) return;
 
             if(msg.content.includes("--help")) {
-                return msg.reply(`${guildData.settings.prefix}${commandName} ${command.config.options.map((arg: any) => `[${arg.name}${arg.required ? "(required)": "(optional)"}]`).join(" ")}`);
+                return msg.reply({embeds: [new VortexEmbed().setTitle(command.config.name).setDescription(`${guildData.settings.prefix}${command.usage.prefix}`)]});
             }
             
             const polyfill = await this.prefixCommandHandler(msg, command);

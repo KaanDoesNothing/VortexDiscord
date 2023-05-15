@@ -12,7 +12,8 @@ informationRouter.get("/commands", (ctx) => {
             description: cmd.config.description,
             category: cmd.category,
             permissions: cmd.userPermissions,
-            arguments: cmd.config.options || []
+            arguments: cmd.config.options || [],
+            usage: cmd.usage
         });
     });
 

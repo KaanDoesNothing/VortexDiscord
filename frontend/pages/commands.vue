@@ -23,7 +23,8 @@
                         <tr v-for="command in commands.filter((cmd: any) => cmd.category === active)" :key="command.name">
                             <td class="font-bold">{{ command.name }}</td>
                             <td>{{ command.description }}</td>
-                            <td>/{{ command.name }} {{ command.arguments.map((arg: any) => `[${arg.name}]`).join(" ") }}</td>
+                            <td>{{ prefixUsage ? `=>${command.usage.prefix}` : `/${command.usage.slash}` }}</td>
+                            <!-- <td>/{{ command.name }} {{ command.usage.prefix }}</td> -->
                         </tr>
                     </tbody>
                 </table>
@@ -48,6 +49,12 @@
     })();
 
     const active = ref(categories[0]);
+    const prefixUsage = ref(false);
+
+    const route = useRoute();
+    if(route.query.prefix) {
+        prefixUsage.value = true;
+    }
 </script>
 
 <style>

@@ -1,4 +1,4 @@
-import { ApplicationCommandPartial, SlashCommandInteraction } from "harmony/mod.ts";
+import { ApplicationCommandOptionType, ApplicationCommandPartial, SlashCommandInteraction } from "harmony/mod.ts";
 import { VortexClient } from "../lib/Client.ts";
 
 export class VortexCommand {
@@ -7,6 +7,10 @@ export class VortexCommand {
     public category: string;
     public clientPermissions: string[];
     public userPermissions: string[];
+    public usage: {
+        slash: string;
+        prefix: string;
+    }
 
     constructor(client: VortexClient) {
         this.client = client;
@@ -21,6 +25,23 @@ export class VortexCommand {
     }
 
     initialize(): void {}
+
+    after(): void {
+        if(!this.config.options) this.config.options = [];
+
+        this.usage = {
+            slash: `${this.config.name} ${this.config.options.map((option) => `[${option.name}]`).join(" ")}`,
+            prefix: `${this.config.name} ` + this.config.options.map((option) => {
+                if(option.type === ApplicationCommandOptionType.USER) {
+                    return `--${option.name} @User`
+                }else if(option.type === ApplicationCommandOptionType.STRING) {
+                    return `--${option.name}="Text"`;
+                }else if(option.type === ApplicationCommandOptionType.NUMBER) {
+                    return `--${option.name}=Number`;
+                }
+            }).join(" ")
+        }
+    }
 
     exec(ctx: SlashCommandInteraction): void | Promise<void> {}
 }
