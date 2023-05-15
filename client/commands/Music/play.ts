@@ -1,9 +1,8 @@
-import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
+import { ApplicationCommandInteraction, ApplicationCommandOptionType } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
-import { GuildWarnTable } from "../../lib/Database.ts";
-import { throws } from "https://deno.land/std@0.177.0/node/assert.ts";
+import { Queue, Queues, lavaNode } from "../../lib/lavalink.ts";
 
-export default class PlayCommand extends VortexCommand {
+export class PlayCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "play",
@@ -18,17 +17,34 @@ export default class PlayCommand extends VortexCommand {
             ]
         }
 
-        this.userPermissions.push("MANAGE_MEMBERS");
+        this.category = "Music";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {
         const url = ctx.option("song") as string;
 
+        const res = await lavaNode.rest.loadTracks(url);
+
+        if(res.loadType === "TRACK_LOADED") {
+            const vc = await ctx.guild.voiceStates.get(ctx.user.id);
+
+            const queue = Queues.get(ctx.guild.id) || new Queue(ctx.guild.id, vc.channelID, ctx.channel.id);
+            res.tracks.forEach((track) => queue.add(track));
+            queue.player.connect(BigInt(vc.channelID), {deafen: true});
+
+            if(!queue.player.playing) {
+                queue.play();
+
+                ctx.reply("I will now start playing!");
+            }else {
+                ctx.reply(`Added: ${res.tracks[0].info.title}`);
+            }
+        }
         // const MusicManager = this.client.MusicManager;
 
-        const res = await this.client.vulkava.search(url);
+        // const res = await this.client.vulkava.search(url);
 
-        console.log(res);
+        // console.log(res);
 		// let player = MusicManager.manager.get(ctx.guild.id);
 
 		// if(!player) {

@@ -8,11 +8,13 @@ import { EmojiDislike, EmojiLike } from "./Constant.ts";
 import { levelSystemHandler } from "../handlers/levelSystem.ts";
 import { blacklistSystemHandler } from "../handlers/blacklistSystem.ts";
 import * as commands from "../commands/mod.ts";
+import { musicManager } from "./MusicManager.ts";
+import { lavaNode } from "./lavalink.ts";
 
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, VortexCommand>}
     public statistics: {commands: {ran: number}, messages: {read: number}};
-    // MusicManager: musicManager;
+    MusicManager: musicManager;
     constructor() {
         super({
             token: env().DISCORD_TOKEN as string,
@@ -21,7 +23,8 @@ export class VortexClient extends CommandClient {
             intents: [
                 "GUILDS",
                 "GUILD_MESSAGES",
-                "GUILD_MESSAGE_REACTIONS"
+                "GUILD_MESSAGE_REACTIONS",
+                "GUILD_VOICE_STATES"
             ]
         });
 
@@ -46,6 +49,19 @@ export class VortexClient extends CommandClient {
         await this.loadCommands();
         console.timeEnd("Loaded Commands");
         console.log("Initialized!");
+
+        this.MusicManager = new musicManager(this);
+
+        lavaNode.on("connect", node => console.log(`now connected...`));
+
+        // this.on("raw", (event, payload) => {
+        //     switch (event) {
+        //         case "VOICE_STATE_UPDATE":
+        //         case "VOICE_SERVER_UPDATE": {
+        //             lavaNode.handleVoiceUpdate(payload);
+        //         }
+        //     }
+        // });
     }
 
     async loadCommands(): Promise<void> {
@@ -65,6 +81,16 @@ export class VortexClient extends CommandClient {
     }
 
     @event()
+    raw(e, payload) {
+        switch (e) {
+            case "VOICE_STATE_UPDATE":
+            case "VOICE_SERVER_UPDATE": {
+                lavaNode.handleVoiceUpdate(payload);
+            }
+        }
+    }
+
+    @event()
     async ready(): Promise<void> {
         await this.initialize();
         console.log(`Logged in as ${this.user?.tag}`);
@@ -76,6 +102,8 @@ export class VortexClient extends CommandClient {
         // });
 
         this.setPresence({name: `/announcement, (Important) ${await this.guilds.size()} Servers`, url: `https://www.twitch.tv/${this.user?.username}`, type: 1 });
+
+        lavaNode.connect(BigInt(this.user!.id));
     }
 
     @event()
@@ -116,8 +144,6 @@ export class VortexClient extends CommandClient {
         const userData = await UserTable.findOne({user_id});
         if(!userData) {
             (await UserTable.create({user_id})).save();
-
-            console.log(`Created User_Data for ${user_id}`);
         }
 
         return;
@@ -128,8 +154,6 @@ export class VortexClient extends CommandClient {
 
         if(!guildData) {
             (await GuildTable.create({guild_id})).save();
-
-            console.log(`Created Guild_Data for ${guild_id}`);
         }
 
         return;
@@ -140,8 +164,6 @@ export class VortexClient extends CommandClient {
 
         if(!guildUserData) {
             (await GuildUserTable.create({user_id, guild_id})).save();
-
-            console.log(`Created Guild_User_Data for ${guild_id}:${user_id}`);
         }
 
         return;
