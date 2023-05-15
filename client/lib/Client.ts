@@ -74,6 +74,8 @@ export class VortexClient extends CommandClient {
             const instance = new command(this);
             console.log(`Command Loaded: ${instance.config.name}`);
 
+            if(!instance.config.options) instance.config.options = [];
+
             list.push(instance.config);
 
             this.executables.commands.set(instance.config.name, instance);
