@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { VortexRolePlayEmbed } from "../../lib/Embed.ts";
 import { nekosLife } from "../../lib/nekosLife.ts";
 
-export default class TickleCommand extends VortexCommand {
+export class TickleCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "tickle",
@@ -17,6 +17,8 @@ export default class TickleCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Roleplay";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

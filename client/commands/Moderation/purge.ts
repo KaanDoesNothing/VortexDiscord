@@ -1,7 +1,7 @@
 import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
-export default class PurgeCommand extends VortexCommand {
+export class PurgeCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "purge",
@@ -15,6 +15,8 @@ export default class PurgeCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         // this.clientPermissions.push("MANAGE_MESSAGES");
         this.userPermissions.push("MANAGE_MESSAGES");

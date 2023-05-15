@@ -1,7 +1,7 @@
 import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
-export default class BanCommand extends VortexCommand {
+export class BanCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "ban",
@@ -21,6 +21,8 @@ export default class BanCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         this.clientPermissions.push("BAN_MEMBERS");
         this.userPermissions.push("BAN_MEMBERS");

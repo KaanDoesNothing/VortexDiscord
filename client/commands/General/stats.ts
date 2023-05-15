@@ -3,12 +3,14 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 import os from "https://deno.land/x/dos@v0.11.0/mod.ts";
 
-export default class StatsCommand extends VortexCommand {
+export class StatsCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "stats",
             description: "Bot stats"
         }
+
+        this.category = "General";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

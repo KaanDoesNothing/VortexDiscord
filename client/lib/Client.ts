@@ -4,11 +4,13 @@ import {ApplicationCommandInteraction, CommandClient, Message, MessageReaction, 
 import { GuildTable, GuildUserTable, UserTable } from "./Database.ts";
 import { VortexCommand } from "./Command.ts";
 import { ClientMissingPermission, MemberMissingPermission } from "./Language.ts";
-import { EmojiDislike, EmojiLike, MessagesToLevel } from "./Constant.ts";
-import { VortexEmbed } from "./Embed.ts";
+import { EmojiDislike, EmojiLike } from "./Constant.ts";
+import { levelSystemHandler } from "../handlers/levelSystem.ts";
+import { blacklistSystemHandler } from "../handlers/blacklistSystem.ts";
+import * as commands from "../commands/mod.ts";
 
 export class VortexClient extends CommandClient {
-    public executables: {commands: Map<string, {instance: VortexCommand, information: {category: string}}>}
+    public executables: {commands: Map<string, VortexCommand>}
     public statistics: {commands: {ran: number}, messages: {read: number}};
     // MusicManager: musicManager;
     constructor() {
@@ -40,30 +42,23 @@ export class VortexClient extends CommandClient {
     }
 
     async initialize(): Promise<void> {
+        console.time("Loaded Commands");
         await this.loadCommands();
+        console.timeEnd("Loaded Commands");
         console.log("Initialized!");
     }
 
     async loadCommands(): Promise<void> {
-        const categories = Deno.readDir(`${Deno.cwd()}/commands`);
-        
         const list = [];
 
-        for await (const category of categories) {
-            if(!category.isDirectory) continue;
-            const commandFiles = Deno.readDir(`${Deno.cwd()}/commands/${category.name}`);
+        for (const i in commands) {
+            const command = commands[i];
+            const instance = new command(this);
+            console.log(`Command Loaded: ${instance.config.name}`);
 
-            for await (const commandFile of commandFiles) {
-                if(!commandFile.name.endsWith(".ts")) continue;
-                const file = await import(`${Deno.cwd()}/commands/${category.name}/${commandFile.name}`);
-                const instance = new file.default(this);
+            list.push(instance.config);
 
-                console.log(`Command Loaded: ${instance.config.name}`);
-
-                list.push(instance.config);
-
-                this.executables.commands.set(instance.config.name, {instance, information: {category: category.name}});
-            }
+            this.executables.commands.set(instance.config.name, instance);
         }
 
         await this.interactions.commands.bulkEdit(list);
@@ -157,33 +152,8 @@ export class VortexClient extends CommandClient {
             return;
         }
 
-        if(guildData.settings.economy.experience.enabled) {
-            guildUserData.economy.experience.messages++;
-
-            const nextLevel = MessagesToLevel * guildUserData.economy.experience.level;
-
-            if(guildUserData.economy.experience.messages > nextLevel) {
-                guildUserData.economy.experience.level++;
-
-                const levelEmbed = new VortexEmbed()
-                    .setAuthor(msg.author.tag, msg.author.avatarURL())
-                    .setDescription(`${msg.author.tag} is now level ${guildUserData.economy.experience.level}!`);
-
-                msg.channel.send({embeds: [levelEmbed]});
-            }
-
-            await guildUserData.save();   
-        }
-
-        guildData.settings.blacklist.words.forEach((word: string) => {
-            if(msg.content.includes(word)) {
-                try {
-                    msg.delete();
-                }catch(err) {
-                    console.log(err);
-                }
-            }
-        })
+        await levelSystemHandler(msg);
+        await blacklistSystemHandler(msg);
     }
 
     @event()
@@ -204,13 +174,13 @@ export class VortexClient extends CommandClient {
 
             if(command) {
                 try {
-                    if(command.instance.userPermissions.length > 0 || command.instance.clientPermissions.length > 0) {
+                    if(command.userPermissions.length > 0 || command.clientPermissions.length > 0) {
                         const MemberMissingPermissions: string[] = [];
                         const ClientMissingPermissions: string[] = [];
 
                         if(!interaction.member) return;
 
-                        command.instance.userPermissions.forEach((permission) => {
+                        command.userPermissions.forEach((permission) => {
                             const flag = (PermissionFlags as any)[permission];
                             if(!interaction.member?.permissions.has(flag)) MemberMissingPermissions.push(permission);
                         });
@@ -220,7 +190,7 @@ export class VortexClient extends CommandClient {
                             return;
                         }
 
-                        command.instance.clientPermissions.forEach((permission) => {
+                        command.clientPermissions.forEach((permission) => {
                             const flag = (PermissionFlags as any)[permission];
                             if(interaction.member?.permissions.has(flag)) ClientMissingPermissions.push(permission);
                         });
@@ -231,7 +201,7 @@ export class VortexClient extends CommandClient {
                         }
                     }
 
-                    await command.instance.exec(interaction);
+                    await command.exec(interaction);
                     this.statistics.commands.ran++;
                 }catch(err) {
                     console.log(err);

@@ -2,7 +2,7 @@ import {ApplicationCommandChoice, ApplicationCommandInteraction, ApplicationComm
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class HelpCommand extends VortexCommand {
+export class HelpCommand extends VortexCommand {
     initialize(): void {
         // const choices: ApplicationCommandChoice = [];
         //
@@ -31,6 +31,8 @@ export default class HelpCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "General";
     }
 
     exec(ctx: ApplicationCommandInteraction): void {
@@ -41,16 +43,16 @@ export default class HelpCommand extends VortexCommand {
         embed.setTitle("This is a rewrite not the final version!");
 		
 		this.client.executables.commands.forEach((cmd) => {
-			if(categories.includes(cmd.information.category)) return;
+			if(categories.includes(cmd.category)) return;
 
-			categories.push(cmd.information.category);
+			categories.push(cmd.category);
 		});
 
 		categories.forEach((category) => {
             let commandsLine = "";
             this.client.executables.commands.forEach(cmd => {
-                if(cmd.information.category !== category) return;
-                commandsLine += (`\`${cmd.instance.config.name}\` `);
+                if(cmd.category !== category) return;
+                commandsLine += (`\`${cmd.config.name}\` `);
             });
 
 			if(commandsLine.length < 1) return;

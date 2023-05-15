@@ -4,7 +4,7 @@ import { UserTable } from "../../lib/Database.ts";
 import { CurrencyName } from "../../lib/Language.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class LeaderboardCommand extends VortexCommand {
+export class LeaderboardCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "leaderboard",
@@ -28,6 +28,8 @@ export default class LeaderboardCommand extends VortexCommand {
             //     }
             // ]
         }
+
+        this.category = "Economy";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

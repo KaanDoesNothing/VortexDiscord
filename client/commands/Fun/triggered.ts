@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType, MessageAtt
 import { VortexCommand } from "../../lib/Command.ts";
 import {Image} from "imagescript/mod.ts";
 
-export default class TriggeredCommand extends VortexCommand {
+export class TriggeredCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "triggered",
@@ -16,6 +16,8 @@ export default class TriggeredCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Fun";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

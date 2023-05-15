@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { UserTable } from "../../lib/Database.ts";
 import { CurrencyName, NoUserDBEntry } from "../../lib/Language.ts";
 
-export default class BioCommand extends VortexCommand {
+export class BioCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "bio",
@@ -17,6 +17,8 @@ export default class BioCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Social";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

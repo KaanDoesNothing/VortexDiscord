@@ -5,7 +5,7 @@ import { CurrencyName, NoUserDBEntry } from "../../lib/Language.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 import { convertObjectToParams } from "../../lib/utils.ts";
 
-export default class ProfileCommand extends VortexCommand {
+export class ProfileCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "profile",
@@ -19,6 +19,8 @@ export default class ProfileCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Social";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

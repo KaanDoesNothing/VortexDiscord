@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType } from "har
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class EmbedCommand extends VortexCommand {
+export class EmbedCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "embed",
@@ -22,6 +22,8 @@ export default class EmbedCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         this.userPermissions.push("MANAGE_MESSAGES");
     }

@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { VortexRolePlayEmbed } from "../../lib/Embed.ts";
 import { nekosLife } from "../../lib/nekosLife.ts";
 
-export default class SlapCommand extends VortexCommand {
+export class SlapCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "slap",
@@ -17,6 +17,8 @@ export default class SlapCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Roleplay";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

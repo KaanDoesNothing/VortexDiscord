@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { GuildWarnTable } from "../../lib/Database.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class WarnsCommand extends VortexCommand {
+export class WarnsCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "warns",
@@ -17,6 +17,8 @@ export default class WarnsCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         this.userPermissions.push("MANAGE_MEMBERS");
     }

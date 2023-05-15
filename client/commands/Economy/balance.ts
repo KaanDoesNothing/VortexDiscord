@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { UserTable } from "../../lib/Database.ts";
 import { CurrencyName, NoUserDBEntry } from "../../lib/Language.ts";
 
-export default class BalanceCommand extends VortexCommand {
+export class BalanceCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "balance",
@@ -17,6 +17,8 @@ export default class BalanceCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Economy";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

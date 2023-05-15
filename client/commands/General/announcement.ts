@@ -1,12 +1,14 @@
 import { ApplicationCommandInteraction } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
-export default class AnnouncementCommand extends VortexCommand {
+export class AnnouncementCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "announcement",
             description: "A little update"
         }
+
+        this.category = "General";
     }
 
     exec(ctx: ApplicationCommandInteraction): void {

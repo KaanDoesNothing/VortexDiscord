@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { GuildTable, UserTable } from "../../lib/Database.ts";
 import { CurrencyName } from "../../lib/Language.ts";
 
-export default class LevelingCommand extends VortexCommand {
+export class LevelingCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "leveling",
@@ -27,6 +27,8 @@ export default class LevelingCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Server Settings";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

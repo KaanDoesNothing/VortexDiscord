@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType, MessageAtt
 import { VortexCommand } from "../../lib/Command.ts";
 import {Image} from "imagescript/mod.ts";
 
-export default class DeleteCommand extends VortexCommand {
+export class DeleteCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "delete",
@@ -16,6 +16,8 @@ export default class DeleteCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Fun";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

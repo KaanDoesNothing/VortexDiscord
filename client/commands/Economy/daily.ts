@@ -3,12 +3,14 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { UserTable } from "../../lib/Database.ts";
 import { DailyEconomyCooldown, DailyEconomyReward } from "../../lib/Constant.ts";
 
-export default class DailyCommand extends VortexCommand {
+export class DailyCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "daily",
             description: "Collect your daily reward",
         }
+
+        this.category = "Economy";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

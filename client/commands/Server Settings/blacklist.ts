@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType } from "har
 import { VortexCommand } from "../../lib/Command.ts";
 import { GuildTable } from "../../lib/Database.ts";
 
-export default class BlacklistCommand extends VortexCommand {
+export class BlacklistCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "blacklist",
@@ -32,6 +32,8 @@ export default class BlacklistCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Server Settings";
 
         this.userPermissions.push("MANAGE_MESSAGES");
     }

@@ -1,7 +1,7 @@
 import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
-export default class KickCommand extends VortexCommand {
+export class KickCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "kick",
@@ -21,6 +21,8 @@ export default class KickCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         this.clientPermissions.push("KICK_MEMBERS");
         this.userPermissions.push("KICK_MEMBERS");

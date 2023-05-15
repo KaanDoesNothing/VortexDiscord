@@ -2,12 +2,14 @@ import { ApplicationCommandInteraction } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class ServerInfoCommand extends VortexCommand {
+export class ServerInfoCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "serverinfo",
             description: "Server Information"
         }
+
+        this.category = "Information";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

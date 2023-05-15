@@ -1,7 +1,7 @@
 import { ApplicationCommandInteraction, ApplicationCommandOptionType } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
-export default class EightBallCommand extends VortexCommand {
+export class EightBallCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "8ball",
@@ -15,6 +15,8 @@ export default class EightBallCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Fun";
     }
 
     exec(ctx: ApplicationCommandInteraction): void {

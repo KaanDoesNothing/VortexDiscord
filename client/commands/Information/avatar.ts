@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } fro
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class AvatarCommand extends VortexCommand {
+export class AvatarCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "avatar",
@@ -16,6 +16,8 @@ export default class AvatarCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Information";
     }
 
     exec(ctx: ApplicationCommandInteraction): void {

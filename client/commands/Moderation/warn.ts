@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } fro
 import { VortexCommand } from "../../lib/Command.ts";
 import { GuildWarnTable } from "../../lib/Database.ts";
 
-export default class WarnCommand extends VortexCommand {
+export class WarnCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "warn",
@@ -22,6 +22,8 @@ export default class WarnCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Moderation";
 
         this.userPermissions.push("MANAGE_MEMBERS");
     }

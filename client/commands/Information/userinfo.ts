@@ -2,7 +2,7 @@ import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } fro
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
-export default class UserInfoCommand extends VortexCommand {
+export class UserInfoCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "userinfo",
@@ -16,6 +16,8 @@ export default class UserInfoCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Information";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

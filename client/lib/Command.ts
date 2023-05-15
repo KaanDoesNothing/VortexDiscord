@@ -4,6 +4,7 @@ import { VortexClient } from "../lib/Client.ts";
 export class VortexCommand {
     public client: VortexClient;
     public config: ApplicationCommandPartial;
+    public category: string;
     public clientPermissions: string[];
     public userPermissions: string[];
 
@@ -11,6 +12,7 @@ export class VortexCommand {
         this.client = client;
 
         this.config = {name: "Command"};
+        this.category = "None";
 
         this.clientPermissions = [];
         this.userPermissions = [];

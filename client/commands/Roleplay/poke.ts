@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { VortexRolePlayEmbed } from "../../lib/Embed.ts";
 import { nekosLife } from "../../lib/nekosLife.ts";
 
-export default class PokeCommand extends VortexCommand {
+export class PokeCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "poke",
@@ -17,6 +17,8 @@ export default class PokeCommand extends VortexCommand {
                 }
             ]
         }
+
+        this.category = "Roleplay";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {

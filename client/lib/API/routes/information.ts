@@ -8,11 +8,11 @@ informationRouter.get("/commands", (ctx) => {
 
     client.executables.commands.forEach(cmd => {
         commands.push({
-            name: cmd.instance.config.name,
-            description: cmd.instance.config.description,
-            category: cmd.information.category,
-            permissions: cmd.instance.userPermissions,
-            arguments: cmd.instance.config.options || []
+            name: cmd.config.name,
+            description: cmd.config.description,
+            category: cmd.category,
+            permissions: cmd.userPermissions,
+            arguments: cmd.config.options || []
         });
     });
 

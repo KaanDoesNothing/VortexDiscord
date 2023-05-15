@@ -3,7 +3,7 @@ import { VortexCommand } from "../../lib/Command.ts";
 import { UserTable } from "../../lib/Database.ts";
 import { CurrencyName } from "../../lib/Language.ts";
 
-export default class CoinFlipCommand extends VortexCommand {
+export class CoinFlipCommand extends VortexCommand {
     initialize(): void {
         this.config = {
             name: "coinflip",
@@ -33,6 +33,8 @@ export default class CoinFlipCommand extends VortexCommand {
                 }
             ]
         }
+        
+        this.category = "Economy";
     }
 
     async exec(ctx: ApplicationCommandInteraction): Promise<void> {
