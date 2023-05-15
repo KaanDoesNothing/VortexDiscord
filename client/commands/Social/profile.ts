@@ -1,4 +1,4 @@
-import { ApplicationCommandInteraction, ApplicationCommandOptionType, MessageAttachment, User } from "harmony/mod.ts";
+import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 import { GuildUserTable, UserTable } from "../../lib/Database.ts";
 import { CurrencyName, NoUserDBEntry } from "../../lib/Language.ts";

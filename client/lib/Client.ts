@@ -80,8 +80,9 @@ export class VortexClient extends CommandClient {
 
     @event()
     async messageReactionAdd(e: MessageReaction): Promise<void> {
+        await this.userDataExists(e.message.author.id);
+
         const userData = await UserTable.findOne({user_id: e.message.author.id});
-        if(!userData) return;
 
         if(e.emoji.name === EmojiLike) {
             userData.profile.likes++;
@@ -96,8 +97,9 @@ export class VortexClient extends CommandClient {
 
     @event()
     async messageReactionRemove(e: MessageReaction): Promise<void> {
+        await this.userDataExists(e.message.author.id);
+
         const userData = await UserTable.findOne({user_id: e.message.author.id});
-        if(!userData) return;
 
         if(e.emoji.name === EmojiLike) {
             userData.profile.likes--;
@@ -110,47 +112,50 @@ export class VortexClient extends CommandClient {
         }
     }
 
+    async userDataExists(user_id: string): Promise<void> {
+        const userData = await UserTable.findOne({user_id});
+        if(!userData) {
+            (await UserTable.create({user_id})).save();
+
+            console.log(`Created User_Data for ${user_id}`);
+        }
+
+        return;
+    }
+
+    async guildDataExists(guild_id: string): Promise<void> {
+        const guildData = await GuildTable.findOne({guild_id});
+
+        if(!guildData) {
+            (await GuildTable.create({guild_id})).save();
+
+            console.log(`Created Guild_Data for ${guild_id}`);
+        }
+
+        return;
+    }
+
+    async guildUserDataExists(guild_id: string, user_id: string): Promise<void> {
+        const guildUserData = await GuildUserTable.findOne({guild_id, user_id});
+
+        if(!guildUserData) {
+            (await GuildUserTable.create({user_id, guild_id})).save();
+
+            console.log(`Created Guild_User_Data for ${guild_id}:${user_id}`);
+        }
+
+        return;
+    }
+
     @event()
     async messageCreate(msg: Message) {
         this.statistics.messages.read++;
 
         if(msg.author.bot) return;
-
-        const userData = await UserTable.findOne({user_id: msg.author.id});
-        if(!userData) {
-            (await UserTable.create({user_id: msg.author.id})).save();
-
-            console.log(`Created User_Data for ${msg.author.id}`);
-            
-            this.emit("messageCreate", msg);
-
-            return;
-        }
-            
         
-        const guildData = await GuildTable.findOne({guild_id: msg.guildID});
-
-        if(!guildData) {
-            (await GuildTable.create({guild_id: msg.guildID})).save();
-
-            console.log(`Created Guild_Data for ${msg.guildID}`);
-            
-            this.emit("messageCreate", msg);
-
-            return;
-        }
-
-        const guildUserData = await GuildUserTable.findOne({guild_id: msg.guildID, user_id: msg.author.id});
-
-        if(!guildUserData) {
-            (await GuildUserTable.create({user_id: msg.author.id, guild_id: msg.guildID})).save();
-
-            console.log(`Created Guild_User_Data for ${msg.guildID}:${msg.author.id}`);
-            
-            this.emit("messageCreate", msg);
-
-            return;
-        }
+        await this.userDataExists(msg.author.id);
+        await this.guildDataExists(msg.guildID);
+        await this.guildUserDataExists(msg.guildID, msg.author.id);
 
         await levelSystemHandler(msg);
         await blacklistSystemHandler(msg);
@@ -159,16 +164,7 @@ export class VortexClient extends CommandClient {
     @event()
     async interactionCreate(interaction: ApplicationCommandInteraction) {
         if(interaction.isApplicationCommand()) {
-            const userData = await UserTable.findOne({user_id: interaction.user.id});
-            if(!userData) {
-                (await UserTable.create({user_id: interaction.user.id})).save();
-
-                console.log(`Created User_Data for ${interaction.user.id}`);
-                
-                this.emit("interactionCreate", interaction);
-
-                return;
-            }
+            await this.userDataExists(interaction.user.id);
             
             const command = this.executables.commands.get(interaction.data.name);
 

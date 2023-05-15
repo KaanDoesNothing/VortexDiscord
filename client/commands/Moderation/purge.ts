@@ -1,4 +1,4 @@
-import { ApplicationCommandInteraction, ApplicationCommandOptionType, User } from "harmony/mod.ts";
+import { ApplicationCommandInteraction, ApplicationCommandOptionType } from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 
 export class PurgeCommand extends VortexCommand {

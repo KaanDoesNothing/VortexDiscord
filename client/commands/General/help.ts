@@ -1,22 +1,9 @@
-import {ApplicationCommandChoice, ApplicationCommandInteraction, ApplicationCommandOptionType} from "harmony/mod.ts";
+import {ApplicationCommandInteraction, ApplicationCommandOptionType} from "harmony/mod.ts";
 import { VortexCommand } from "../../lib/Command.ts";
 import { VortexEmbed } from "../../lib/Embed.ts";
 
 export class HelpCommand extends VortexCommand {
     initialize(): void {
-        // const choices: ApplicationCommandChoice = [];
-        //
-        // const commands = this.client.executables.commands;
-        //
-        // for (const i in commands) {
-        //     const command = commands[i];
-        //
-        //     choices.push({
-        //         name: command.name,
-        //         value: command.name
-        //     });
-        // }
-
         this.config = {
             name: "help",
             description: "Gives you a list of commands",
@@ -25,9 +12,7 @@ export class HelpCommand extends VortexCommand {
                     name: "command",
                     required: false,
                     description: "Command",
-                    type: ApplicationCommandOptionType.STRING,
-                    // choices
-                    // choices: this.client.executables.commands.
+                    type: ApplicationCommandOptionType.STRING
                 }
             ]
         }
