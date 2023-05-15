@@ -26,7 +26,7 @@ export class HelpCommand extends VortexCommand {
 		const embed = new VortexEmbed();
 
         embed.setTitle("This is a rewrite not the final version!");
-        embed.setDescription("Experimental: You can also use commands with the prefix, try =>balance --help");
+        embed.setDescription("Experimental: You can also use commands with the prefix, Take a look at https://vortex.kaanlikescoding.me/commands?prefix=true");
 		
 		this.client.executables.commands.forEach((cmd) => {
 			if(categories.includes(cmd.category)) return;
