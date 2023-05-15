@@ -3,11 +3,15 @@ import { client } from "../index.ts";
 import { Track } from "https://deno.land/x/lavalink_types@2.0.6/mod.ts";
 import { TextChannel } from "harmony/mod.ts";
 
+import {config as env} from "dotenv/mod.ts";
+
+const config = env();
+
 export const lavaNode = new Node({
     connection: {
-        host: "mail.kaanlikescoding.me",
+        host: config.LAVALINK_HOST,
         port: 2333,
-        password: "0751",
+        password: config.LAVALINK_PASSWORD,
     },
     sendGatewayPayload: (id, payload) => {
         const shardID = Number(
