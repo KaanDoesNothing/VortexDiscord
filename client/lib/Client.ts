@@ -170,8 +170,6 @@ export class VortexClient extends CommandClient {
                     .setDescription(`${msg.author.tag} is now level ${guildUserData.economy.experience.level}!`);
 
                 msg.channel.send({embeds: [levelEmbed]});
-                
-                console.log(`${msg.guildID}:${msg.author.id} has leveled up`);
             }
 
             await guildUserData.save();   

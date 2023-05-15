@@ -5,7 +5,6 @@
   </Html>
   <NuxtLoadingIndicator></NuxtLoadingIndicator>
   <NuxtLayout>
-    <Navbar></Navbar>
     <NuxtPage></NuxtPage>
   </NuxtLayout>
 </template>
