@@ -59,7 +59,8 @@ const GuildSchema = new mongoose.Schema({
         },
         blacklist: {
             words: {type: mongoose.SchemaTypes.Array, default: []}
-        }
+        },
+        prefix: {type: mongoose.SchemaTypes.String, default: "=>"}
     }
 }, {timestamps: true});
 

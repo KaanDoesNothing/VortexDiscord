@@ -1,6 +1,6 @@
 import {config as env} from "dotenv/mod.ts";
 
-import {ApplicationCommandInteraction, CommandClient, Message, MessageReaction, PermissionFlags, event} from "harmony/mod.ts";
+import {ApplicationCommandInteraction, ApplicationCommandOptionType, CommandClient, InteractionApplicationCommandData, Message, MessageReaction, PermissionFlags, event} from "harmony/mod.ts";
 import { GuildTable, GuildUserTable, UserTable } from "./Database.ts";
 import { VortexCommand } from "./Command.ts";
 import { ClientMissingPermission, MemberMissingPermission } from "./Language.ts";
@@ -10,6 +10,7 @@ import { blacklistSystemHandler } from "../handlers/blacklistSystem.ts";
 import * as commands from "../commands/mod.ts";
 import { musicManager } from "./MusicManager.ts";
 import { lavaNode } from "./lavalink.ts";
+import argsParser from "npm:yargs";
 
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, VortexCommand>}
@@ -18,13 +19,14 @@ export class VortexClient extends CommandClient {
     constructor() {
         super({
             token: env().DISCORD_TOKEN as string,
-            prefix: "==>",
+            prefix: "========>",
             caseSensitive: false,
             intents: [
                 "GUILDS",
                 "GUILD_MESSAGES",
                 "GUILD_MESSAGE_REACTIONS",
-                "GUILD_VOICE_STATES"
+                "GUILD_VOICE_STATES",
+                "MESSAGE_CONTENT"
             ]
         });
 
@@ -169,6 +171,59 @@ export class VortexClient extends CommandClient {
         return;
     }
 
+    async prefixCommandHandler(msg: Message, command: VortexCommand) {
+        const options = new Map();
+        const args = argsParser(msg.content).argv;
+        const errors = [];
+
+        for (const i in args) {
+            const arg = args[i];
+            const option = command.config.options.filter(row => row.name === i)[0];
+            if(!option) continue;
+
+            if(option.type === ApplicationCommandOptionType.USER) {
+                const id = arg.replaceAll("<", "").replaceAll(">", "").replaceAll("@", "");
+                try {
+                    const user = await this.users.get(id) || await this.users.fetch(id);
+                    options.set(i, user);
+                }catch(_err) {
+                    errors.push("Invalid User");
+                }
+            }else if(option.type === ApplicationCommandOptionType.STRING) {
+                options.set(i, arg);
+            }else if(option.type === ApplicationCommandOptionType.NUMBER) {
+                if(parseInt(arg)) {
+                    options.set(i, parseInt(arg));
+                }else {
+                    errors.push("Invalid Number");
+                }
+            }
+        }
+
+        if(options.size < command.config.options.filter(option => option.required).length) errors.push(`Missing Arguments(${command.config.options.filter(option => !options.has(option.name)).map(option => option.name).join(", ")})`);
+
+        if(errors.length > 0) {
+            return {error: `Errors: ${errors.join(", ")}`};
+        }
+
+        return {
+            client: this,
+            data: {
+                name: command.config.name
+            },
+            reply: (...content) => msg.reply(...content),
+            user: msg.author,
+            guild: msg.guild,
+            guildID: msg.guildID,
+            channel: msg.channel,
+            channelID: msg.channel.id,
+            resolved: true,
+            option: (name: string) => {
+                return options.get(name);
+            }
+        }
+    }
+
     @event()
     async messageCreate(msg: Message) {
         this.statistics.messages.read++;
@@ -179,8 +234,28 @@ export class VortexClient extends CommandClient {
         await this.guildDataExists(msg.guildID);
         await this.guildUserDataExists(msg.guildID, msg.author.id);
 
+        const guildData = await GuildTable.findOne({guild_id: msg.guildID});
+
         await levelSystemHandler(msg);
         await blacklistSystemHandler(msg);
+
+        if(msg.content.startsWith(guildData.settings.prefix)) {
+            const commandName = msg.content.slice(guildData.settings.prefix.length).trim().split(/ +/g).shift().toLowerCase();
+            const command = this.executables.commands.get(commandName);
+            if(!command) return;
+
+            if(msg.content.includes("--help")) {
+                return msg.reply(`${guildData.settings.prefix}${commandName} ${command.config.options.map((arg: any) => `[${arg.name}${arg.required ? "(required)": "(optional)"}]`).join(" ")}`);
+            }
+            
+            const polyfill = await this.prefixCommandHandler(msg, command);
+
+            if(polyfill.error) {
+                return msg.reply(polyfill.error);
+            }
+
+            await command.exec(polyfill as any);
+        }
     }
 
     @event()
