@@ -35,7 +35,7 @@ export class VortexCommand {
                 if(option.type === ApplicationCommandOptionType.USER) {
                     return `--${option.name} @User`
                 }else if(option.type === ApplicationCommandOptionType.STRING) {
-                    return `--${option.name}="Text"`;
+                    return `--${option.name}="${option.choices ? option.choices.map(choice => choice.value).join(" | ") : "Text"}"`;
                 }else if(option.type === ApplicationCommandOptionType.NUMBER) {
                     return `--${option.name} Number`;
                 }
