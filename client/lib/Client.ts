@@ -10,8 +10,8 @@ import { blacklistSystemHandler } from "../handlers/blacklistSystem.ts";
 import * as commands from "../commands/mod.ts";
 import { musicManager } from "./MusicManager.ts";
 import { lavaNode } from "./lavalink.ts";
-import argsParser from "npm:yargs";
 import { VortexEmbed } from "./Embed.ts";
+import { prefixCommandHandler } from "./prefixCommand.ts";
 
 export class VortexClient extends CommandClient {
     public executables: {commands: Map<string, VortexCommand>}
@@ -174,58 +174,58 @@ export class VortexClient extends CommandClient {
         return;
     }
 
-    async prefixCommandHandler(msg: Message, command: VortexCommand) {
-        const options = new Map();
-        const args = argsParser(msg.content).argv;
-        const errors = [];
+    // async prefixCommandHandler(msg: Message, command: VortexCommand) {
+    //     const options = new Map();
+    //     const args = argsParser(msg.content).argv;
+    //     const errors = [];
 
-        for (const i in args) {
-            const arg = args[i];
-            const option = command.config.options.filter(row => row.name === i)[0];
-            if(!option) continue;
+    //     for (const i in args) {
+    //         const arg = args[i];
+    //         const option = command.config.options.filter(row => row.name === i)[0];
+    //         if(!option) continue;
 
-            if(option.type === ApplicationCommandOptionType.USER) {
-                const id = arg.replaceAll("<", "").replaceAll(">", "").replaceAll("@", "");
-                try {
-                    const user = await this.users.get(id) || await this.users.fetch(id);
-                    options.set(i, user);
-                }catch(_err) {
-                    errors.push("Invalid User");
-                }
-            }else if(option.type === ApplicationCommandOptionType.STRING) {
-                options.set(i, arg);
-            }else if(option.type === ApplicationCommandOptionType.NUMBER) {
-                if(parseInt(arg)) {
-                    options.set(i, parseInt(arg));
-                }else {
-                    errors.push("Invalid Number");
-                }
-            }
-        }
+    //         if(option.type === ApplicationCommandOptionType.USER) {
+    //             const id = arg.replaceAll("<", "").replaceAll(">", "").replaceAll("@", "");
+    //             try {
+    //                 const user = await this.users.get(id) || await this.users.fetch(id);
+    //                 options.set(i, user);
+    //             }catch(_err) {
+    //                 errors.push("Invalid User");
+    //             }
+    //         }else if(option.type === ApplicationCommandOptionType.STRING) {
+    //             options.set(i, arg);
+    //         }else if(option.type === ApplicationCommandOptionType.NUMBER) {
+    //             if(parseInt(arg)) {
+    //                 options.set(i, parseInt(arg));
+    //             }else {
+    //                 errors.push("Invalid Number");
+    //             }
+    //         }
+    //     }
 
-        if(options.size < command.config.options.filter(option => option.required).length) errors.push(`Missing Arguments(${command.config.options.filter(option => !options.has(option.name)).map(option => option.name).join(", ")})`);
+    //     if(options.size < command.config.options.filter(option => option.required).length) errors.push(`Missing Arguments(${command.config.options.filter(option => !options.has(option.name)).map(option => option.name).join(", ")})`);
 
-        if(errors.length > 0) {
-            return {error: `Errors: ${errors.join(", ")}`};
-        }
+    //     if(errors.length > 0) {
+    //         return {error: `Errors: ${errors.join(", ")}`};
+    //     }
 
-        return {
-            client: this,
-            data: {
-                name: command.config.name
-            },
-            reply: (...content) => msg.reply(...content),
-            user: msg.author,
-            guild: msg.guild,
-            guildID: msg.guildID,
-            channel: msg.channel,
-            channelID: msg.channel.id,
-            resolved: true,
-            option: (name: string) => {
-                return options.get(name);
-            }
-        }
-    }
+    //     return {
+    //         client: this,
+    //         data: {
+    //             name: command.config.name
+    //         },
+    //         reply: (...content) => msg.reply(...content),
+    //         user: msg.author,
+    //         guild: msg.guild,
+    //         guildID: msg.guildID,
+    //         channel: msg.channel,
+    //         channelID: msg.channel.id,
+    //         resolved: true,
+    //         option: (name: string) => {
+    //             return options.get(name);
+    //         }
+    //     }
+    // }
 
     @event()
     async messageCreate(msg: Message) {
@@ -251,7 +251,8 @@ export class VortexClient extends CommandClient {
                 return msg.reply({embeds: [new VortexEmbed().setTitle(command.config.name).setDescription(`${guildData.settings.prefix}${command.usage.prefix}`)]});
             }
             
-            const polyfill = await this.prefixCommandHandler(msg, command);
+            
+            const polyfill = await (new prefixCommandHandler(msg, command)).parse();
 
             if(polyfill.error) {
                 return msg.reply(polyfill.error);

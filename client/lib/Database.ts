@@ -6,7 +6,7 @@ const config = env();
 export const initDatabase = () => new Promise(async (resolve, reject) => {
     try {
         //@ts-ignore
-        await mongoose.connect(config.MONGODB,{ dbName: "VortexDiscord" });
+        await mongoose.connect(config.MONGODB,{ dbName: config.DATABASE || "VortexDiscord" });
         console.log("Connected to database");
         resolve(true);
     }catch(err) {
