@@ -7,3 +7,4 @@ backup/
 */package-lock.json
 */dist
 */yarn.lock
+client/dump.rdb

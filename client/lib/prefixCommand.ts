@@ -74,7 +74,7 @@ export class prefixCommandHandler {
         }
 
         if(this.options.size < this.command.config.options.filter(option => option.required).length) {
-            this.errors.push(`Missing Arguments(${this.command.config.options.filter(option => !options.has(option.name)).map(option => option.name).join(", ")})`);
+            this.errors.push(`Missing Arguments(${this.command.config.options.filter(option => !options.has(option.name) && option.required).map(option => option.name).join(", ")})`);
         }
 
         if(this.errors.length > 0) {

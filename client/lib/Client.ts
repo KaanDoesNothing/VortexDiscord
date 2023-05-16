@@ -1,6 +1,6 @@
 import {config as env} from "dotenv/mod.ts";
 
-import {ApplicationCommandInteraction, ApplicationCommandOptionType, CommandClient, InteractionApplicationCommandData, Message, MessageReaction, PermissionFlags, event} from "harmony/mod.ts";
+import {ApplicationCommandInteraction, CommandClient, Message, MessageReaction, PermissionFlags, event, RedisCacheAdapter} from "harmony/mod.ts";
 import { GuildTable, GuildUserTable, UserTable } from "./Database.ts";
 import { VortexCommand } from "./Command.ts";
 import { ClientMissingPermission, MemberMissingPermission } from "./Language.ts";
@@ -19,6 +19,7 @@ export class VortexClient extends CommandClient {
     MusicManager: musicManager;
     constructor() {
         super({
+            cache: new RedisCacheAdapter({host: "localhost", port: 7808}),
             token: env().DISCORD_TOKEN as string,
             prefix: "========>",
             caseSensitive: false,
