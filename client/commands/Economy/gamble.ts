@@ -28,6 +28,11 @@ export class GambleCommand extends VortexCommand {
 
         if(!userData) return;
 
+        if(amount > userData.economy.money.value) {
+            ctx.reply(`You don't have enough ${CurrencyName}`);
+            return;
+        }
+
         const won = Math.floor(Math.random() * 2) === 0;
 
         let msgContent;

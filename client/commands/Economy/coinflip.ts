@@ -46,6 +46,11 @@ export class CoinFlipCommand extends VortexCommand {
         const userData = await UserTable.findOne({user_id: ctx.user.id});
 
         if(!userData) return;
+        
+        if(amount > userData.economy.money.value) {
+            ctx.reply(`You don't have enough ${CurrencyName}`);
+            return;
+        }
 
         const generatedNumber = Math.floor(Math.random() * 2) === 0;
 
