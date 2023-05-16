@@ -259,6 +259,7 @@ export class VortexClient extends CommandClient {
             }
 
             await command.exec(polyfill as any);
+            this.statistics.commands.ran++;
         }
     }
 
