@@ -57,15 +57,6 @@ export class VortexClient extends CommandClient {
         this.MusicManager = new musicManager(this);
 
         lavaNode.on("connect", node => console.log(`now connected...`));
-
-        // this.on("raw", (event, payload) => {
-        //     switch (event) {
-        //         case "VOICE_STATE_UPDATE":
-        //         case "VOICE_SERVER_UPDATE": {
-        //             lavaNode.handleVoiceUpdate(payload);
-        //         }
-        //     }
-        // });
     }
 
     async loadCommands(): Promise<void> {

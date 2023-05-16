@@ -17,7 +17,10 @@ export const lavaNode = new Node({
         const shardID = Number(
             (BigInt(id) << 22n) % BigInt(client.shards.cachedShardCount ?? 1),
         );
-        const shard = client.shards.get(shardID);
+        console.log(shardID);
+        const shard = client.shards.get(shardID)
+        console.log(shard);
+
         shard.send(payload);
     },
 });
