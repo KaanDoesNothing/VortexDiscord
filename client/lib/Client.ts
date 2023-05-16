@@ -19,7 +19,7 @@ export class VortexClient extends CommandClient {
     MusicManager: musicManager;
     constructor() {
         super({
-            cache: new RedisCacheAdapter({host: "localhost", port: 7808}),
+            cache: new RedisCacheAdapter({hostname: "localhost", port: 7808}),
             token: env().DISCORD_TOKEN as string,
             prefix: "========>",
             caseSensitive: false,
@@ -81,6 +81,7 @@ export class VortexClient extends CommandClient {
     raw(e, payload) {
         switch (e) {
             case "VOICE_STATE_UPDATE":
+                lavaNode.handleVoiceUpdate(payload);
             case "VOICE_SERVER_UPDATE": {
                 lavaNode.handleVoiceUpdate(payload);
             }
@@ -100,7 +101,7 @@ export class VortexClient extends CommandClient {
 
         this.setPresence({name: `/announcement, (Important) ${await this.guilds.size()} Servers`, url: `https://www.twitch.tv/${this.user?.username}`, type: 1 });
 
-        lavaNode.connect(BigInt(this.user!.id));
+        await lavaNode.connect(BigInt(this.user!.id));
     }
 
     @event()

@@ -27,10 +27,11 @@ export class PlayCommand extends VortexCommand {
 
         if(res.loadType === "TRACK_LOADED") {
             const vc = await ctx.guild.voiceStates.get(ctx.user.id);
-
             const queue = Queues.get(ctx.guild.id) || new Queue(ctx.guild.id, vc.channelID, ctx.channel.id);
+
+            const connect = queue.player.connect(BigInt(vc.channelID), {deafen: true});
+
             res.tracks.forEach((track) => queue.add(track));
-            await queue.player.connect(BigInt(vc.channelID), {deafen: true});
 
             if(!queue.player.playing) {
                 queue.play();

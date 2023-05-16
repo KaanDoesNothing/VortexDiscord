@@ -17,10 +17,8 @@ export const lavaNode = new Node({
         const shardID = Number(
             (BigInt(id) << 22n) % BigInt(client.shards.cachedShardCount ?? 1),
         );
-        console.log(shardID);
-        const shard = client.shards.get(shardID)
-        console.log(shard);
 
+        const shard = client.shards.get(shardID)
         shard.send(payload);
     },
 });
@@ -43,6 +41,9 @@ export class Queue {
 
         this.player.on("trackStart", () => this.handleTrackStart())
         this.player.on("trackEnd", () => this.handleTrackEnd());
+        this.player.on("trackStuck", (e) => console.log(e));
+        this.player.on("trackException", (e) => console.log(e));
+        this.player.on("disconnected", (e) => console.log(e));
 
         Queues.set(guild, this);
     }
@@ -84,3 +85,5 @@ export class Queue {
 }
 
 lavaNode.on("connect", node => console.log(`now connected...`));
+lavaNode.on("nodeError", (e) => console.log(e));
+lavaNode.on("debug", (e) => console.log(e));
