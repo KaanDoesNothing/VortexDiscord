@@ -14,7 +14,7 @@ export class VortexClient extends CommandClient {
     MusicManager: musicManager;
     constructor() {
         super({
-            cache: new RedisCacheAdapter({hostname: "localhost", port: 7808}),
+            // cache: new RedisCacheAdapter({hostname: "localhost", port: 7808}),
             token: env().DISCORD_TOKEN as string,
             prefix: "========>",
             caseSensitive: false,
@@ -68,7 +68,9 @@ export class VortexClient extends CommandClient {
 
             instance.after();
 
-            list.push(instance.config);
+            if(!instance.hidden) {
+                list.push(instance.config);
+            }
 
             this.executables.commands.set(instance.config.name, instance);
         }

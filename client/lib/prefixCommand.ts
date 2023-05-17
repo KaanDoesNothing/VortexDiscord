@@ -45,10 +45,10 @@ export class prefixCommandHandler {
         for (const argName in args) {
             const argValue = args[argName];
 
-            console.log(`Parsing: ${argName} = ${argValue}`);
+            // console.log(`Parsing: ${argName} = ${argValue}`);
 
             const option = this.command.config.options.filter(row => row.name === argName)[0];
-            console.log(option);
+            // console.log(option);
 
             if(!option) continue;
 

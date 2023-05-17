@@ -37,6 +37,8 @@ export class HelpCommand extends VortexCommand {
 		categories.forEach((category) => {
             let commandsLine = "";
             this.client.executables.commands.forEach(cmd => {
+                if(cmd.hidden) return;
+
                 if(cmd.category !== category) return;
                 commandsLine += (`\`${cmd.config.name}\` `);
             });

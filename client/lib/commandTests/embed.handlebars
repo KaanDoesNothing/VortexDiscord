@@ -1,3 +1,13 @@
 {{useEmbed}}
 {{embedTitle guild.name}}
+{{embedColor "gold"}}
+[Testing Strings]
 Welcome to the server {{author.username}}
+[Testing User Settings]
+Your level is {{author.settings.economy.experience.level}}
+[Testing Guild Settings]
+Server Prefix is {{{guild.settings.prefix}}}
+
+{{#ifEquals author.username "Kaan"}}
+    Equals test
+{{/ifEquals}}

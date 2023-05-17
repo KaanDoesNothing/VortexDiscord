@@ -6,6 +6,7 @@ import {GuildTable, GuildUserTable} from "../lib/Database.ts";
 import {VortexEmbed} from "../lib/Embed.ts";
 import {prefixCommandHandler} from "../lib/prefixCommand.ts";
 import {MessagesToLevel} from "../lib/Constant.ts";
+import {CustomCommand} from "../lib/Command.ts";
 
 export class messageCreateExtension extends VortexExtension {
     constructor(client: VortexClient) {
@@ -31,7 +32,27 @@ export class messageCreateExtension extends VortexExtension {
         if(msg.content.startsWith(guildData.settings.prefix)) {
             const commandName = msg.content.slice(guildData.settings.prefix.length).trim().split(/ +/g).shift().toLowerCase();
             const command = this.client.executables.commands.get(commandName);
-            if(!command) return;
+            if(!command) {
+                const customCommand = guildData.settings.custom.commands.filter(cmd => cmd.name === commandName)[0];
+
+                if(!customCommand) return;
+
+                const parser = new CustomCommand()
+                    .setGuild(msg.guild.id)
+                    .setAuthor(msg.author)
+
+                const parsed = await parser.parse(customCommand.source);
+
+                parsed.forEach(action => {
+                    if(action.type === "embed") {
+                        msg.reply({embeds: [action.content]});
+                    }else if(action.type === "message") {
+                        msg.reply(action.content);
+                    }
+                });
+
+                return;
+            }
 
             if(msg.content.includes("--help")) {
                 return msg.reply({embeds: [new VortexEmbed().setTitle(command.config.name).setDescription(`${guildData.settings.prefix}${command.usage.prefix}`)]});
