@@ -40,6 +40,7 @@ handlebars.registerHelper("ifNotEquals", function (value1, value2, options) {
 const template = handlebars.compile(data.template);
 
 const result = template(data.templateData);
+
 if(embed) {
     embed.setDescription(result);
 

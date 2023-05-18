@@ -16,10 +16,21 @@ guildRouter.post("/information", async (ctx) => {
     }};
 });
 
-guildRouter.post("/settings", async (ctx) => {
+guildRouter.post("/settings/get", async (ctx) => {
     const {guild_id} = await ctx.request.body({type: "json"}).value;
 
     const guildData = await GuildTable.findOne({guild_id});
 
-    ctx.response.body = guildData;
+    ctx.response.body = guildData.settings;
+});
+
+guildRouter.post("/settings/update", async (ctx) => {
+    const {guild_id, data} = await ctx.request.body({type: "json"}).value;
+
+    const guildData = await GuildTable.findOne({guild_id});
+    guildData.set("settings", data);
+
+    await guildData.save();
+
+    ctx.response.body = guildData.settings;
 });

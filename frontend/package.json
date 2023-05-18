@@ -17,6 +17,8 @@
     "@pinia/nuxt": "^0.4.10",
     "daisyui": "^2.51.6",
     "flowbite": "^1.6.5",
+    "monaco-editor": "^0.38.0",
+    "nuxt-monaco-editor": "^1.2.2",
     "pinia": "^2.0.36"
   }
 }
