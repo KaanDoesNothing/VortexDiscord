@@ -15,7 +15,7 @@ export const useSessionStore = defineStore("session", {
 
             if(!key) return;
 
-            const res = await $fetch<any>(`${config.public.api}/authentication/user`, {body: {key}, method: "POST"});
+            const res = await $fetch<any>(`${config.public.api}/authentication/user`, {body: {key}, method: "POST"}).catch(err => console.log(err));
 
             if(res.error) {
                 useCookie("key").value = undefined;

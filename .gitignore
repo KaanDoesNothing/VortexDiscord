@@ -8,3 +8,4 @@ backup/
 */dist
 */yarn.lock
 client/dump.rdb
+*/cryptokey.json

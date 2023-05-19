@@ -1,10 +1,11 @@
 import { Router } from "oak/mod.ts";
 import { client } from "../../../index.ts";
 import { GuildTable } from "../../Database.ts";
+import {getGuild, getUser} from "../middleware.ts";
 
 export const guildRouter = new Router({prefix: "/guild"});
 
-guildRouter.post("/information", async (ctx) => {
+guildRouter.post("/information", getUser, async (ctx) => {
     const {guild_id} = await ctx.request.body({type: "json"}).value;
 
     const guildInfo = await client.guilds.get(guild_id);
@@ -16,7 +17,7 @@ guildRouter.post("/information", async (ctx) => {
     }};
 });
 
-guildRouter.post("/settings/get", async (ctx) => {
+guildRouter.post("/settings/get", getUser, async (ctx) => {
     const {guild_id} = await ctx.request.body({type: "json"}).value;
 
     const guildData = await GuildTable.findOne({guild_id});
@@ -24,7 +25,7 @@ guildRouter.post("/settings/get", async (ctx) => {
     ctx.response.body = guildData.settings;
 });
 
-guildRouter.post("/settings/update", async (ctx) => {
+guildRouter.post("/settings/update", getUser, getGuild, async (ctx) => {
     const {guild_id, data} = await ctx.request.body({type: "json"}).value;
 
     const guildData = await GuildTable.findOne({guild_id});

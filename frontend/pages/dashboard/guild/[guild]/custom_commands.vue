@@ -42,19 +42,20 @@ definePageMeta({
 const config = useRuntimeConfig();
 
 const route = useRoute();
+const key = useCookie("key").value;
 
 const code = ref("");
 const current_command = ref("");
 const visible = ref(false);
 const isNew = ref(false);
 
-const guildInfo = await $fetch<any>(`${config.public.api}/guild/information`, {body: {guild_id: route.params.guild}, method: "POST"});
-const guildSettings = await $fetch<any>(`${config.public.api}/guild/settings/get`, {body: {guild_id: route.params.guild}, method: "POST"});
+const guildInfo = await $fetch<any>(`${config.public.api}/guild/information`, {body: {key, guild_id: route.params.guild}, method: "POST"});
+const guildSettings = await $fetch<any>(`${config.public.api}/guild/settings/get`, {body: {key, guild_id: route.params.guild}, method: "POST"});
 
 async function handleSave() {
     const command = guildSettings.custom.commands.filter((cmd: any) => cmd.name === current_command.value)[0];
     command.source = code.value;
-    await $fetch<any>(`${config.public.api}/guild/settings/update`, {body: {guild_id: route.params.guild, data: guildSettings}, method: "POST"});
+    await $fetch<any>(`${config.public.api}/guild/settings/update`, {body: {key, guild_id: route.params.guild, data: guildSettings}, method: "POST"});
 }
 
 function handleReset() {

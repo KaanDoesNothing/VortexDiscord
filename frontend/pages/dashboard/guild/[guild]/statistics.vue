@@ -28,7 +28,9 @@ const config = useRuntimeConfig();
 
 const route = useRoute();
 
-const guildInfo = await $fetch<any>(`${config.public.api}/guild/information`, {body: {guild_id: route.params.guild}, method: "POST"});
+const key = useCookie("key").value;
+
+const guildInfo = await $fetch<any>(`${config.public.api}/guild/information`, {body: {key, guild_id: route.params.guild}, method: "POST"});
 // const guildData = await $fetch<any>(`${config.public.api}/guild/settings`, {body: {guild_id: route.params.id}, method: "POST"});
 // console.log(guildInfo);
 </script>

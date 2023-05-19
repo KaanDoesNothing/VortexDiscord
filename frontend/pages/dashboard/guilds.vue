@@ -14,8 +14,8 @@
                             <label class="font-sans font-bold">{{ guild.name }}</label>
                         </div>
                         <div class="text-center flex flex-col">
-                            <a :href="`/dashboard/guild/${guild.id}/statistics`" class="btn" v-if="guild.inGuild">Manage</a>
-                            <a class="btn" :href="`https://discord.com/oauth2/authorize?client_id=${generalStore.client_info?.id}&scope=bot&permissions=1099511627767&&guild_id=${guild.id}`" v-if="!guild.inGuild">Invite</a>
+                            <a :href="`/dashboard/guild/${guild.id}/statistics`" class="btn">Manage</a>
+                            <!-- <a class="btn" :href="`https://discord.com/oauth2/authorize?client_id=${generalStore.client_info?.id}&scope=bot&permissions=1099511627767&&guild_id=${guild.id}`" v-if="!guild.inGuild">Invite</a> -->
                         </div>
                     </div>
                 </div>
