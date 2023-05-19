@@ -39,7 +39,8 @@ authRouter.post("/guilds", getUser, async (ctx) => {
 
     for (const i in guildsArray) {
         const guild = guildsArray[i];
-        const member = await guild.members.fetch(ctx.session.user.id);
+        let member = await guild.members.fetch(ctx.session.user.id);
+        if(member) member = await guild.members.fetch(ctx.session.user.id);
         if(!member) continue;
 
         console.log(member.permissions);
