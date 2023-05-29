@@ -7,6 +7,8 @@ informationRouter.get("/commands", (ctx) => {
     const commands = [];
 
     client.executables.commands.forEach(cmd => {
+        if(cmd.hidden) return;
+        
         commands.push({
             name: cmd.config.name,
             description: cmd.config.description,

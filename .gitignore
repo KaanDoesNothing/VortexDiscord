@@ -9,3 +9,4 @@ backup/
 */yarn.lock
 client/dump.rdb
 */cryptokey.json
+.vscode/
