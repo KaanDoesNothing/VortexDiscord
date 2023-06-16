@@ -3,7 +3,7 @@ import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
 import {musicCategoryName} from "./mod";
 import {NoMusicPlaying} from "../../lib/Language";
 
-export class SkipCommand extends VortexCommand {
+export class StopCommand extends VortexCommand {
     config = new SlashCommandBuilder()
         .setName("skip")
         .setDescription("Skip the current song");
@@ -17,8 +17,8 @@ export class SkipCommand extends VortexCommand {
             return;
         }
 
-        player.skip();
+        player.destroy();
 
-        await ctx.reply("Skipped current song!");
+        await ctx.reply("Leaving vc!");
     }
 }
