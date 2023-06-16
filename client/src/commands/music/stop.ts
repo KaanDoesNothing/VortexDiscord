@@ -5,8 +5,8 @@ import {NoMusicPlaying} from "../../lib/Language";
 
 export class StopCommand extends VortexCommand {
     config = new SlashCommandBuilder()
-        .setName("skip")
-        .setDescription("Skip the current song");
+        .setName("stop")
+        .setDescription("Stop playing music");
 
     category = musicCategoryName;
     async exec(ctx: ChatInputCommandInteraction): Promise<void> {
