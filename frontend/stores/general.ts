@@ -26,7 +26,7 @@ export const useGeneralStore = defineStore("general", {
         async fetchStatistics() {
             const config = useRuntimeConfig();
             
-            this.statistics = await $fetch(`${config.public.api}/statistics`);
+            this.statistics = await $fetch(`${config.public.api}/information/statistics`);
         }
     }
 })

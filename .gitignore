@@ -10,3 +10,5 @@ backup/
 client/dump.rdb
 */cryptokey.json
 .vscode/
+node/
+client_old/

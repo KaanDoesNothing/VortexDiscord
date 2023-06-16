@@ -20,7 +20,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="command in commands.filter((cmd: any) => cmd.category === active && !cmd.hidden)" :key="command.name">
+                        <tr v-for="command in commands.filter((cmd: any) => cmd.category === active)" :key="command.name">
                             <td class="font-bold">{{ command.name }}</td>
                             <td>{{ command.description }}</td>
                             <td>{{ prefixUsage ? `=>${command.usage.prefix}` : `/${command.usage.slash}` }}</td>

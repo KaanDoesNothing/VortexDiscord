@@ -26,8 +26,10 @@ const router = useRouter();
 
 if(route.query.code) {
   const res = await $fetch<any>(`${config.public.api}/authentication`, {body: {code: route.query.code}, method: "POST"});
+  
   if(res.key) {
     useCookie("key").value = res.key;
+    sessionStore.$patch({key: res.key});
   }
 
   await router.push("/");

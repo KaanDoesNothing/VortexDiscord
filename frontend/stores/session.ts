@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 
 interface iSessionStore {
     user?: any;
+    key?: string;
 }
 
 export const useSessionStore = defineStore("session", {
