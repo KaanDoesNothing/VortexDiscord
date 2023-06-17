@@ -13,8 +13,6 @@ export class slashCommandEvent extends VortexEvent {
     async exec(interaction: Interaction): Promise<void> {
         if(interaction.isChatInputCommand()) {
             await this.client.userDataExists(interaction.user.id);
-            //@ts-ignore
-            // console.log(interaction.options)
 
             const command = this.client.executables.commands.get(interaction.commandName);
 
@@ -47,8 +45,13 @@ export class slashCommandEvent extends VortexEvent {
                         }
                     }
 
-                    await command.exec(interaction);
-                    this.client.statistics.commands.ran++;
+                    try {
+                        await command.exec(interaction);
+                        this.client.statistics.commands.ran++;
+                    }catch(err) {
+                        console.log(err);
+                        await interaction.reply("An error occurred");
+                    }
                 }catch(err) {
                     console.log(err);
                 }

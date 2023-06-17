@@ -10,7 +10,7 @@ export class HelpCommand extends VortexCommand {
 
     category = generalCategoryName;
 
-    exec(ctx: ChatInputCommandInteraction): void {
+    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
         const categories: string[] = [];
 
         const embed = new VortexEmbed();
@@ -38,6 +38,6 @@ export class HelpCommand extends VortexCommand {
             embed.addFields({name: category, value: commandsLine});
         });
 
-        ctx.reply({embeds: [embed]});
+        await ctx.reply({embeds: [embed]});
     }
 }

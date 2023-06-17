@@ -1,9 +1,8 @@
 import {
-    ApplicationCommandOptionType, CommandInteraction,
-    CommandInteractionOption,
-    Interaction, PermissionsString,
-    SlashCommandBuilder,
-    User
+    ApplicationCommandOptionType,
+    ChatInputCommandInteraction,
+    PermissionsString,
+    SlashCommandBuilder
 } from "discord.js";
 import { VortexClient } from "../Client";
 
@@ -45,7 +44,7 @@ export class VortexCommand {
     //     }
     // }
 
-    exec(ctx: Interaction): void | Promise<void> {}
+    async exec(ctx: ChatInputCommandInteraction): Promise<void> {}
 }
 
 // export class CustomCommand {

@@ -7,6 +7,7 @@ import * as events from "../events/mod";
 import {GuildTable, GuildUserTable, UserTable} from "./Database";
 import {Kazagumo} from "kazagumo";
 import {Connectors} from "shoukaku";
+import {log} from "./Logger";
 
 export class VortexClient extends Client {
     public executables: {commands: Map<string, VortexCommand>};
@@ -53,6 +54,8 @@ export class VortexClient extends Client {
             secure: false
         }]);
 
+        this.music.shoukaku.on("ready", (name: string) => console.log(`Lavalink ${name}: ready!`))
+
         this.music.on("playerStart", (player, track) => {
             (this.channels.cache.get(player.textId) as TextChannel)?.send({content: `Now playing **${track.title}** by **${track.author}**`})
                 .then(x => player.data.set("message", x));
@@ -80,7 +83,7 @@ export class VortexClient extends Client {
             // @ts-ignore
             const event = events[i];
             const instance = new event(this);
-            console.log({type: "success", message: `Event Loaded: ${instance}, ${instance.type}`});
+            log({type: "success", message: `Event Loaded: ${instance.type}`});
 
             this.on(instance.type, (...args) => {
                 // console.log("Running event", instance.type);
@@ -102,7 +105,7 @@ export class VortexClient extends Client {
             }
 
             const instance = new command(this);
-            console.log({type: "success", message: `Command Loaded: ${instance.config.name}`});
+            log({type: "success", message: `Command Loaded: ${instance.config.name}`});
 
             this.executables.commands.set(instance.config.name, instance);
         }

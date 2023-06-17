@@ -6,3 +6,4 @@ export * from "./moderation/mod";
 export * from "./social/mod";
 export * from "./roleplay/mod";
 export * from "./music/mod";
+export * from "./settings/mod";
