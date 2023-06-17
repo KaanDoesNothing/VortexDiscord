@@ -3,6 +3,12 @@ import {Message} from "discord.js";
 import argsParser from "yargs";
 import {VortexCommand} from "../structures/Command";
 
+export const argTypes = {
+    user: 6,
+    string: 3,
+    number: 10
+}
+
 export class optionsHandler extends Map {
     getUser(name: string) {
         return this.get(name);
@@ -63,22 +69,22 @@ export class slashParser {
                 }
             }
 
-            console.log(arg.type);
+            // console.log(arg.type);
 
             //Will improve this later!!!
 
             //Parse User
-            if(arg.type === 6) {
+            if(arg.type === argTypes.user) {
                 await this.parseUser(arg.name, passedArg)
             }
 
             //Parse String
-            if(arg.type === 3) {
+            if(arg.type === argTypes.string) {
                 this.options.set(arg.name, passedArg);
             }
 
             //Parse Number
-            if(arg.type === 10) {
+            if(arg.type === argTypes.number) {
                 if(!parseInt(passedArg)) this.missingArgs.push(arg.name);
                 this.options.set(arg.name, passedArg);
             }

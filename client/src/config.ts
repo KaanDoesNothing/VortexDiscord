@@ -10,4 +10,6 @@ export const VortexConfig = dotenv.config().parsed as {
     LAVALINK_NAME: string;
     LAVALINK_URL: string;
     LAVALINK_AUTH: string;
+    TOPGG: string;
+    DEV?: string;
 };
