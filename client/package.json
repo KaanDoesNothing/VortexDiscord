@@ -8,7 +8,6 @@
     "canvas-constructor": "^7.0.1",
     "chalk": "4",
     "cors": "^2.8.5",
-    "dblwrapper.js": "^1.0.5",
     "disco-oauth": "^5.1.1",
     "discord.js": "^14.11.0",
     "dotenv": "^16.1.4",
@@ -18,6 +17,7 @@
     "morgan": "^1.10.0",
     "nekos.life": "^3.0.0",
     "shoukaku": "^3.4.0",
+    "topgg-autoposter": "^2.0.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

@@ -9,6 +9,8 @@ import {Kazagumo} from "kazagumo";
 import {Connectors} from "shoukaku";
 import {log} from "./Logger";
 
+import { AutoPoster } from "topgg-autoposter";
+
 export class VortexClient extends Client {
     public executables: {commands: Map<string, VortexCommand>};
     public statistics: {commands: {ran: number}, messages: {read: number}};
@@ -72,6 +74,14 @@ export class VortexClient extends Client {
         });
 
         this.loadEvents();
+
+        if(!VortexConfig.DEV) {
+            const ap = AutoPoster(VortexConfig.TOPGG, this);
+
+            ap.on("posted", () => {
+                console.log("Stats Updated");
+            });
+        }
     }
 
     initialize() {
