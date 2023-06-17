@@ -44,7 +44,13 @@ export class messageEvent extends VortexEvent {
                 return;
             }
 
-            command.exec(res as any);
+            try {
+                await command.exec(res as any);
+                this.client.statistics.commands.ran++;
+            }catch(err) {
+                console.log(err);
+                await msg.reply("An error occurred");
+            }
         }
     }
 

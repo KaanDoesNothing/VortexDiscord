@@ -15,6 +15,8 @@ export class StatsCommand extends VortexCommand {
         const application = await this.client.application.fetch();
         const owner = application.owner as User;
 
+        const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+
         const embed = new VortexEmbed()
             .addField("Owner", owner.tag, true)
             .addField("Library", "Discord.js", true)
@@ -25,6 +27,7 @@ export class StatsCommand extends VortexCommand {
             .addField("Guilds", this.client.guilds.cache.size.toString(), true)
             .addField("Channels", this.client.channels.cache.size.toString(), true)
             .addField("Users", this.client.guilds.cache.reduce((prev, next) => prev + next.memberCount, 0).toString(), true)
+            .addField("Memory", `${(Math.round(usedMemory * 100) / 100).toFixed(0)} MB`, true)
             .addField("OS", os.platform(), true);
 
         await ctx.reply({embeds: [embed]})
