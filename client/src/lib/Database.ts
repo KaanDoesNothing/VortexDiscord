@@ -13,7 +13,11 @@ export const initDatabase = () => new Promise(async (resolve, reject) => {
     }
 });
 
-interface IUserSchema {
+export interface DBDefault {
+    createdAt: string;
+}
+
+export interface IUserSchema extends DBDefault {
     user_id: string;
     economy: {
         money: {
@@ -53,6 +57,17 @@ const UserSchema = new mongoose.Schema({
     blacklisted: {type: mongoose.SchemaTypes.Boolean, default: false}
 }, {timestamps: true});
 
+export interface IGuildUserSchema extends DBDefault {
+    user_id: string;
+    guild_id: string;
+    economy: {
+        experience: {
+            level: number;
+            messages: number;
+        }
+    }
+}
+
 const GuildUserSchema = new mongoose.Schema({
     user_id: {type: mongoose.SchemaTypes.String, required: true},
     guild_id: {type: mongoose.SchemaTypes.String, required: true},
@@ -64,11 +79,35 @@ const GuildUserSchema = new mongoose.Schema({
     }
 }, {timestamps: true});
 
+export interface IGuildWarnSchema extends DBDefault {
+    user_id: string;
+    guild_id: string;
+    reason: string;
+}
+
 const GuildWarnSchema = new mongoose.Schema({
     user_id: {type: mongoose.SchemaTypes.String, required: true},
     guild_id: {type: mongoose.SchemaTypes.String, required: true},
     reason: {type: mongoose.SchemaTypes.String, required: true}
 }, {timestamps: true});
+
+export interface IGuildSchema extends DBDefault {
+    guild_id: string;
+    settings: {
+        economy: {
+            experience: {
+                enabled: boolean
+            }
+        },
+        blacklist: {
+            words: string[]
+        },
+        prefix: string;
+        custom: {
+            commands: [{name: string, code: string}]
+        }
+    }
+}
 
 const GuildSchema = new mongoose.Schema({
     guild_id: {type: mongoose.SchemaTypes.String, required: true},
@@ -98,7 +137,7 @@ const CacheSchema = new mongoose.Schema({
 });
 
 export const UserTable = mongoose.model<IUserSchema>("User", UserSchema);
-export const GuildUserTable = mongoose.model("GuildUser", GuildUserSchema);
-export const GuildTable = mongoose.model("Guild", GuildSchema);
+export const GuildUserTable = mongoose.model<IGuildUserSchema>("GuildUser", GuildUserSchema);
+export const GuildTable = mongoose.model<IGuildSchema>("Guild", GuildSchema);
 export const CacheTable = mongoose.model("Cache", CacheSchema);
-export const GuildWarnTable = mongoose.model("GuildWarn", GuildWarnSchema);
+export const GuildWarnTable = mongoose.model<IGuildWarnSchema>("GuildWarn", GuildWarnSchema);

@@ -19,6 +19,7 @@ export class VortexCommand {
     public clientPermissions?: PermissionsString[] = [];
     public userPermissions?: PermissionsString[] = [];
     public hidden: boolean = false;
+    public dev: boolean = false;
 
     constructor(client: VortexClient) {
         this.client = client;

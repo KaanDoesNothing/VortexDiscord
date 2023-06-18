@@ -19,6 +19,7 @@ export class BuyCommand extends VortexCommand {
         })))
 
     category = economyCategoryName;
+    dev = true;
 
     async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const item = ctx.options.getString("item");

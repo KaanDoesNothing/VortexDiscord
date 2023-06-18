@@ -10,6 +10,7 @@ export class ShopCommand extends VortexCommand {
         .setDescription("View shop");
 
     category = economyCategoryName;
+    dev = true
 
     exec(ctx: ChatInputCommandInteraction): InteractionReplyOptions {
         const shopEmbed = new VortexEmbed()

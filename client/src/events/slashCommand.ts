@@ -2,6 +2,7 @@ import {VortexEvent} from "../lib/structures/Event";
 import {VortexClient} from "../lib/Client";
 import {Interaction, PermissionsBitField, PermissionsString} from "discord.js";
 import {ClientMissingPermission, MemberMissingPermission} from "../lib/Language";
+import {VortexConfig} from "../config";
 
 export class slashCommandEvent extends VortexEvent {
     constructor(client: VortexClient) {
@@ -15,6 +16,10 @@ export class slashCommandEvent extends VortexEvent {
             await this.client.userDataExists(interaction.user.id);
 
             const command = this.client.executables.commands.get(interaction.commandName);
+
+            if(command.dev && !VortexConfig.DEV) {
+                await interaction.reply("Command is in development and not ready for public use!");
+            }
 
             if(command) {
                 try {
