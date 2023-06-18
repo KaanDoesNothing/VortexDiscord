@@ -13,6 +13,26 @@ export const initDatabase = () => new Promise(async (resolve, reject) => {
     }
 });
 
+interface IUserSchema {
+    user_id: string;
+    economy: {
+        money: {
+            value: number;
+            cooldown: number;
+        }
+    },
+    inventory: {
+        items: string[]
+    },
+    profile: {
+        description: string;
+        likes: number;
+        dislikes: number
+    },
+    administrator: boolean;
+    blacklisted: boolean;
+}
+
 const UserSchema = new mongoose.Schema({
     user_id: {type: mongoose.SchemaTypes.String, required: true},
     economy: {
@@ -20,6 +40,9 @@ const UserSchema = new mongoose.Schema({
             value: {type: mongoose.SchemaTypes.Number, default: 500},
             cooldown: {type: mongoose.SchemaTypes.Number, default: 0}
         }
+    },
+    inventory: {
+        items: {type: mongoose.SchemaTypes.Array, default: []}
     },
     profile: {
         description: {type: mongoose.SchemaTypes.String, default: "None", maxlength: 100},
@@ -74,7 +97,7 @@ const CacheSchema = new mongoose.Schema({
     value: {}
 });
 
-export const UserTable = mongoose.model("User", UserSchema);
+export const UserTable = mongoose.model<IUserSchema>("User", UserSchema);
 export const GuildUserTable = mongoose.model("GuildUser", GuildUserSchema);
 export const GuildTable = mongoose.model("Guild", GuildSchema);
 export const CacheTable = mongoose.model("Cache", CacheSchema);

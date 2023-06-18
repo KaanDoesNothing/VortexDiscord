@@ -2,7 +2,6 @@ import {VortexCommand} from "../../lib/structures/Command";
 import {ChatInputCommandInteraction, SlashCommandBuilder, User} from "discord.js";
 import {UserTable} from "../../lib/Database";
 import {CurrencyName, NoUserDBEntry} from "../../lib/Language";
-import {VortexClient} from "../../lib/Client";
 import {economyCategoryName} from "./mod";
 
 export class BalanceCommand extends VortexCommand {
