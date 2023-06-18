@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder, User} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder, User} from "discord.js";
 import {VortexEmbed} from "../../lib/structures/Embed";
 import os from "os";
 import {generalCategoryName} from "./mod";
@@ -11,7 +11,7 @@ export class StatsCommand extends VortexCommand {
 
     category = generalCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const application = await this.client.application.fetch();
         const owner = application.owner as User;
 
@@ -30,6 +30,6 @@ export class StatsCommand extends VortexCommand {
             .addField("Memory", `${(Math.round(usedMemory * 100) / 100).toFixed(0)} MB`, true)
             .addField("OS", os.platform(), true);
 
-        await ctx.reply({embeds: [embed]})
+        return {embeds: [embed]};
     }
 }

@@ -62,6 +62,7 @@ const GuildSchema = new mongoose.Schema({
         custom: {
             //name
             //code
+            // {name: "test", code: ""}
             commands: {type: mongoose.SchemaTypes.Array, default: []}
         }
     }

@@ -96,7 +96,6 @@ export class VortexClient extends Client {
             log({type: "success", message: `Event Loaded: ${instance.type}`});
 
             this.on(instance.type, (...args) => {
-                // console.log("Running event", instance.type);
                 instance.exec(...args);
             });
         }

@@ -45,7 +45,12 @@ export class messageEvent extends VortexEvent {
             }
 
             try {
-                await command.exec(res as any);
+                const executed = await command.exec(res as any);
+
+                if(typeof executed === "object") {
+                    await msg.reply(executed as any);
+                }
+
                 this.client.statistics.commands.ran++;
             }catch(err) {
                 console.log(err);

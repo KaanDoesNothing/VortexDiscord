@@ -46,7 +46,11 @@ export class slashCommandEvent extends VortexEvent {
                     }
 
                     try {
-                        await command.exec(interaction);
+                        const res = await command.exec(interaction);
+                        if(typeof res === "object") {
+                            await interaction.reply(res);
+                        }
+
                         this.client.statistics.commands.ran++;
                     }catch(err) {
                         console.log(err);

@@ -4,6 +4,7 @@
             <label class="text-4xl">{{ generalStore.client_info.username }}</label>
             <label class="text-2xl">A multi-purpose Discord bot</label>
             <label class="text-2xl">Designed with simplicity in mind</label>
+            <label>Currently in {{ generalStore.statistics?.guilds }} servers</label>
 
             <br>
             <a class="underline animate-bounce" :href="`https://discord.com/oauth2/authorize?client_id=${generalStore.client_info.id}&scope=bot&permissions=1099511627767`">Click here to get started!</a>

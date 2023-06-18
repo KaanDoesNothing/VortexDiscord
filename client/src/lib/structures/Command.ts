@@ -1,10 +1,11 @@
 import {
     ApplicationCommandOptionType,
-    ChatInputCommandInteraction,
+    ChatInputCommandInteraction, InteractionReplyOptions,
     PermissionsString,
     SlashCommandBuilder
 } from "discord.js";
 import { VortexClient } from "../Client";
+import {VortexEmbed} from "./Embed";
 
 export class VortexCommand {
     public client: VortexClient;
@@ -27,24 +28,7 @@ export class VortexCommand {
 
     initialize(): void {}
 
-    // after(): void {
-    //     if(!this.config.options) this.config.options = [];
-    //
-    //     this.usage = {
-    //         slash: `${this.config.name} ${this.config.options.map((option) => `[${option.name}]`).join(" ")}`,
-    //         prefix: `${this.config.name} ` + this.config.options.map((option) => {
-    //             if(option.type === ApplicationCommandOptionType.USER) {
-    //                 return `--${option.name} @User`
-    //             }else if(option.type === ApplicationCommandOptionType.STRING) {
-    //                 return `--${option.name}="${option.choices ? option.choices.map(choice => choice.value).join(" | ") : "Text"}"`;
-    //             }else if(option.type === ApplicationCommandOptionType.NUMBER) {
-    //                 return `--${option.name} Number`;
-    //             }
-    //         }).join(" ")
-    //     }
-    // }
-
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {}
+    exec(ctx: ChatInputCommandInteraction): void | InteractionReplyOptions | Promise<void | InteractionReplyOptions> {}
 }
 
 // export class CustomCommand {
