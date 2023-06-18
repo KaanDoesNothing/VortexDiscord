@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {VortexEmbed} from "../../lib/structures/Embed";
 import {moderationCategoryName} from "./mod";
 
@@ -11,6 +11,8 @@ export class EmbedCommand extends VortexCommand {
         .addStringOption((arg) => arg.setName("content").setDescription("content").setRequired(true));
 
     category = moderationCategoryName;
+
+    userPermissions: PermissionsString[] = ["ManageMessages"];
 
     async exec(ctx: ChatInputCommandInteraction): Promise<void> {
         const title = ctx.options.getString("title");
