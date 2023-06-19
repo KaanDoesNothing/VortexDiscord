@@ -4,11 +4,9 @@ import {
     PermissionsString,
     SlashCommandBuilder
 } from "discord.js";
-import { VortexClient } from "../Client";
-import {VortexEmbed} from "./Embed";
+import {BaseClass} from "./base";
 
-export class VortexCommand {
-    public client: VortexClient;
+export class VortexCommand extends BaseClass {
     public usage?: {
         slash: string;
         prefix: string;
@@ -21,9 +19,8 @@ export class VortexCommand {
     public hidden: boolean = false;
     public dev: boolean = false;
 
-    constructor(client: VortexClient) {
-        this.client = client;
-
+    constructor() {
+        super();
         if(this.initialize) this.initialize();
     }
 

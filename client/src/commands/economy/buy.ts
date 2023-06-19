@@ -5,8 +5,6 @@ import {getBuyableItems, getInventoryItem} from "../../lib/user/items";
 import {UserTable} from "../../lib/Database";
 import {NotEnoughBalance, NoUserDBEntry} from "../../lib/Language";
 
-console.log(getBuyableItems());
-
 export class BuyCommand extends VortexCommand {
     config = new SlashCommandBuilder()
         .setName("buy")

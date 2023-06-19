@@ -113,7 +113,7 @@ export class VortexClient extends Client {
                 continue;
             }
 
-            const instance = new command(this);
+            const instance = new command().setClient(this);
             log({type: "success", message: `Command Loaded: ${instance.config.name}`});
 
             this.executables.commands.set(instance.config.name, instance);
