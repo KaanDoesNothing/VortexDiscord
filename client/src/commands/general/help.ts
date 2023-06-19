@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {VortexEmbed} from "../../lib/structures/Embed";
 import {generalCategoryName} from "./mod";
 
@@ -10,7 +10,7 @@ export class HelpCommand extends VortexCommand {
 
     category = generalCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    exec(ctx: ChatInputCommandInteraction): InteractionReplyOptions {
         const categories: string[] = [];
 
         const embed = new VortexEmbed();
@@ -38,6 +38,6 @@ export class HelpCommand extends VortexCommand {
             embed.addFields({name: category, value: commandsLine});
         });
 
-        await ctx.reply({embeds: [embed]});
+        return {embeds: [embed]};
     }
 }

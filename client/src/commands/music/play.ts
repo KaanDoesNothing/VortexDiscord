@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {GuildWarnTable} from "../../lib/Database";
 import {musicCategoryName} from "./mod";
 
@@ -10,7 +10,7 @@ export class PlayCommand extends VortexCommand {
         .addStringOption((arg) => arg.setName("input").setDescription("URL or Query").setRequired(true));
 
     category = musicCategoryName;
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const query = ctx.options.getString("input");
 
         const voiceChannel = ctx.guild.members.cache.get(ctx.user.id).voice.channel;
@@ -24,14 +24,13 @@ export class PlayCommand extends VortexCommand {
 
         let result = await this.client.music.search(query, {requester: ctx.user});
         if (!result.tracks.length) {
-            await ctx.reply("No results found!");
-            return;
+            return {content: "No results found!"};
         }
 
         if (result.type === "PLAYLIST") for (let track of result.tracks) player.queue.add(track);
         else player.queue.add(result.tracks[0]);
 
         if (!player.playing && !player.paused) await player.play();
-        await ctx.reply({content: result.type === "PLAYLIST" ? `Queued ${result.tracks.length} from ${result.playlistName}` : `Queued ${result.tracks[0].title}`});
+        return {content: result.type === "PLAYLIST" ? `Queued ${result.tracks.length} from ${result.playlistName}` : `Queued ${result.tracks[0].title}`};
     }
 }

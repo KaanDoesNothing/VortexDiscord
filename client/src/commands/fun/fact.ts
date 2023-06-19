@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {funCategoryName} from "./mod";
 import {nekosLife} from "../../lib/utils/NekosLife";
 export class FactCommand extends VortexCommand {
@@ -9,9 +9,9 @@ export class FactCommand extends VortexCommand {
 
     category = funCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const fact = (await nekosLife.fact()).fact;
 
-        await ctx.reply(`Did you know that: ${fact}`);
+        return {content: `Did you know that: ${fact}`};
     }
 }

@@ -1,5 +1,5 @@
 import { VortexCommand } from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {generalCategoryName} from "./mod";
 
 export class PingCommand extends VortexCommand {
@@ -7,7 +7,7 @@ export class PingCommand extends VortexCommand {
 
     category = generalCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
-        await ctx.reply("Pong!");
+    exec(ctx: ChatInputCommandInteraction): InteractionReplyOptions {
+        return {content: "Pong!"};
     }
 }

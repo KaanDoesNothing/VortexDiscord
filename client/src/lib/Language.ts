@@ -1,5 +1,6 @@
 export const CurrencyName = "Galaxies"
 export const NoUserDBEntry = "User hasn't used the bot before!";
+export const NoGuildDBEntry = "Guild missing data!";
 
 export const InventoryEmpty = "Your inventory is empty!";
 

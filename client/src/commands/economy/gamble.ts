@@ -1,6 +1,6 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
-import {CurrencyName} from "../../lib/Language";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
+import {CurrencyName, NoUserDBEntry} from "../../lib/Language";
 import {UserTable} from "../../lib/Database";
 import {economyCategoryName} from "./mod";
 
@@ -12,12 +12,12 @@ export class GambleCommand extends VortexCommand {
 
     category = economyCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const amount = ctx.options.getNumber("amount");
 
         const userData = await UserTable.findOne({user_id: ctx.user.id});
 
-        if(!userData) return;
+        if(!userData) return {content: NoUserDBEntry};
 
         if(amount > userData.economy.money.value) {
             await ctx.reply(`You don't have enough ${CurrencyName}`);
@@ -40,6 +40,6 @@ export class GambleCommand extends VortexCommand {
 
         await userData.save();
 
-        await ctx.reply(msgContent);
+        return {content: msgContent};
 	}
 }

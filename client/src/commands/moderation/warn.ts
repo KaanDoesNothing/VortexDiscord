@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {GuildWarnTable} from "../../lib/Database";
 import {moderationCategoryName} from "./mod";
 
@@ -14,11 +14,11 @@ export class WarnCommand extends VortexCommand {
 
     userPermissions: PermissionsString[] = ["ModerateMembers"];
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user = ctx.options.getUser("user");
         const reason = ctx.options.getString("reason") || "None";
         await (await GuildWarnTable.create({guild_id: ctx.guild?.id, user_id: user.id, reason})).save();
 
-        await ctx.reply(`${user.tag} has been warned.`);
+        return {content: `${user.tag} has been warned.`};
     }
 }

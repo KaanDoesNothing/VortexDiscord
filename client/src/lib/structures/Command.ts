@@ -19,6 +19,8 @@ export class VortexCommand extends BaseClass {
     public hidden: boolean = false;
     public dev: boolean = false;
 
+    public checks: Function[] = [];
+
     constructor() {
         super();
         if(this.initialize) this.initialize();
@@ -26,7 +28,7 @@ export class VortexCommand extends BaseClass {
 
     initialize(): void {}
 
-    exec(ctx: ChatInputCommandInteraction): void | InteractionReplyOptions | Promise<void | InteractionReplyOptions> {}
+    exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> | InteractionReplyOptions | void {};
 }
 
 // export class CustomCommand {

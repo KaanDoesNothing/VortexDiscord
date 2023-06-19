@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder, User} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder, User} from "discord.js";
 import {UserTable} from "../../lib/Database";
 import {CurrencyName, NoUserDBEntry} from "../../lib/Language";
 import {economyCategoryName} from "./mod";
@@ -12,7 +12,7 @@ export class BalanceCommand extends VortexCommand {
 
     category = economyCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user: User = ctx.options.getUser("user") || ctx.user;
 
         const userData = await UserTable.findOne({user_id: user.id});
@@ -22,6 +22,6 @@ export class BalanceCommand extends VortexCommand {
             return;
         }
 
-       await ctx.reply(`${user.id === ctx.user.id ? "You have" : `${user.tag} has`} ${userData.economy.money.value} ${CurrencyName}.`);
+       return {content: `${user.id === ctx.user.id ? "You have" : `${user.tag} has`} ${userData.economy.money.value} ${CurrencyName}.`};
     }
 }

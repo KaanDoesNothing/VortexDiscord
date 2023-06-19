@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {VortexEmbed} from "../../lib/structures/Embed";
 import {moderationCategoryName} from "./mod";
 
@@ -14,7 +14,7 @@ export class EmbedCommand extends VortexCommand {
 
     userPermissions: PermissionsString[] = ["ManageMessages"];
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const title = ctx.options.getString("title");
         const content = ctx.options.getString("content");
         
@@ -22,6 +22,6 @@ export class EmbedCommand extends VortexCommand {
             .setTitle(title)
             .setDescription(content);
 
-        await ctx.reply({embeds: [embed]});
+        return {embeds: [embed]};
     }
 }

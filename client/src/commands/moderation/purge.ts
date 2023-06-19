@@ -12,7 +12,7 @@ export class PurgeCommand extends VortexCommand {
 
     userPermissions: PermissionsString[] = ["ManageMessages"];
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<any> {
         const amount = ctx.options.getNumber("amount");
         
         const messages = await ctx.channel?.messages.fetch({limit: amount + 1});

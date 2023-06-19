@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {funCategoryName} from "./mod";
 import {Canvas, loadImage} from "canvas-constructor/napi-rs";
 
@@ -11,7 +11,7 @@ export class WastedCommand extends VortexCommand {
 
     category = funCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user = ctx.options.getUser("user") || ctx.user;
 
         const background = await loadImage("./assets/img/wasted.png");
@@ -23,6 +23,6 @@ export class WastedCommand extends VortexCommand {
             .printImage(background, 0, 0, 1000, 1000)
             .pngAsync();
 
-        await ctx.reply({files: [{name: "Delete.png", attachment: img}]});
+        return {files: [{name: "Delete.png", attachment: img}]};
     }
 }

@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {moderationCategoryName} from "./mod";
 
 export class BanCommand extends VortexCommand {
@@ -14,7 +14,7 @@ export class BanCommand extends VortexCommand {
     clientPermissions: PermissionsString[] = ["BanMembers"];
     userPermissions: PermissionsString[] = ["BanMembers"];
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user = ctx.options.getUser("user");
         const reason = ctx.options.getString("reason") || "None";
         
@@ -28,6 +28,6 @@ export class BanCommand extends VortexCommand {
 
         await member.ban({reason});
 
-        await ctx.reply(`${user.tag} has been banned.`);
+        return {content: `${user.tag} has been banned.`};
     }
 }

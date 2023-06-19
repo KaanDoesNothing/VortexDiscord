@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {UserTable} from "../../lib/Database";
 import {VortexEmbed} from "../../lib/structures/Embed";
 import {CurrencyName} from "../../lib/Language";
@@ -12,7 +12,7 @@ export class LeaderboardCommand extends VortexCommand {
 
     category = economyCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         // const choice = ctx.option("type") as string || "global";
 
         const topList = await UserTable.find({}).sort({"economy.money.value": "desc"}).limit(10);
@@ -36,6 +36,6 @@ export class LeaderboardCommand extends VortexCommand {
 
         embed.setDescription(description);
 
-        await ctx.reply({embeds: [embed]});
+        return {embeds: [embed]};
     }
 }

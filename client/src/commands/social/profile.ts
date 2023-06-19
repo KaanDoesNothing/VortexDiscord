@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {GuildUserTable, UserTable} from "../../lib/Database";
 import {CurrencyName, NoUserDBEntry} from "../../lib/Language";
 import {VortexEmbed} from "../../lib/structures/Embed";
@@ -13,15 +13,14 @@ export class ProfileCommand extends VortexCommand {
 
     category = socialCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user = ctx.options.getUser("user") || ctx.user;
 
         const userData = await UserTable.findOne({user_id: user.id});
         const userGuildData = await GuildUserTable.findOne({guild_id: ctx.guild?.id, user_id: user.id});
 
         if(!userData) {
-            await ctx.reply(NoUserDBEntry);
-            return;
+            return {content: NoUserDBEntry};
         }
 
         const embed = new VortexEmbed()
@@ -34,6 +33,6 @@ export class ProfileCommand extends VortexCommand {
             .addField("Dislikes", userData.profile.dislikes.toString(), true)
             .setFooter({text: `Bio: ${userData.profile.description}`});
 
-        await ctx.reply({embeds: [embed]});
+        return {embeds: [embed]};
     }
 }

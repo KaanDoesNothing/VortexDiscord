@@ -1,7 +1,7 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {UserTable} from "../../lib/Database";
-import {CurrencyName} from "../../lib/Language";
+import {CurrencyName, NoUserDBEntry} from "../../lib/Language";
 import {economyCategoryName} from "./mod";
 
 export class CoinFlipCommand extends VortexCommand {
@@ -21,7 +21,7 @@ export class CoinFlipCommand extends VortexCommand {
 
     category = economyCategoryName;
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const flip = ctx.options.getString("side");
         const amount = ctx.options.getNumber("amount");
 
@@ -29,11 +29,10 @@ export class CoinFlipCommand extends VortexCommand {
 
         const userData = await UserTable.findOne({user_id: ctx.user.id});
 
-        if(!userData) return;
+        if(!userData) return {content: NoUserDBEntry};
         
         if(amount > userData.economy.money.value) {
-            ctx.reply(`You don't have enough ${CurrencyName}`);
-            return;
+            return {content: `You don't have enough ${CurrencyName}`};
         }
 
         const generatedNumber = Math.floor(Math.random() * 2) === 0;
@@ -54,6 +53,6 @@ export class CoinFlipCommand extends VortexCommand {
 
         await userData.save();
 
-        await ctx.reply(msgContent);
+        return {content: msgContent};
 	}
 }

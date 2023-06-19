@@ -1,5 +1,5 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {musicCategoryName} from "./mod";
 import {NoMusicPlaying} from "../../lib/Language";
 
@@ -9,16 +9,15 @@ export class SkipCommand extends VortexCommand {
         .setDescription("Skip the current song");
 
     category = musicCategoryName;
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    exec(ctx: ChatInputCommandInteraction): InteractionReplyOptions {
         const player = this.client.music.getPlayer(ctx.guildId);
 
         if(!player) {
-            await ctx.reply(NoMusicPlaying);
-            return;
+            return {content: NoMusicPlaying};
         }
 
         player.skip();
 
-        await ctx.reply("Skipped current song!");
+        return {content: "Skipped current song!"};
     }
 }

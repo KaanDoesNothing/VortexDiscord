@@ -1,4 +1,4 @@
-import {ChatInputCommandInteraction, PermissionsString, SlashCommandBuilder} from "discord.js";
+import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
 import {VortexCommand} from "../../lib/structures/Command";
 import {moderationCategoryName} from "./mod";
 
@@ -14,7 +14,7 @@ export class KickCommand extends VortexCommand {
     clientPermissions: PermissionsString[] = ["KickMembers"];
     userPermissions: PermissionsString[] = ["KickMembers"];
 
-    async exec(ctx: ChatInputCommandInteraction): Promise<void> {
+    async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const user = ctx.options.getUser("user");
         const reason = ctx.options.getString("reason") || "None";
         
@@ -22,12 +22,11 @@ export class KickCommand extends VortexCommand {
         if(!member) return;
 
         if(!member.kickable) {
-            await ctx.reply(`You can't kick the following user: ${user.tag}.`);
-            return;
+            return {content: `You can't kick the following user: ${user.tag}.`};
         }
 
         await member.kick(reason);
 
-        await ctx.reply(`${user.tag} has been kicked.`);
+        return {content: `${user.tag} has been kicked.`};
     }
 }
