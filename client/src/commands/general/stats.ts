@@ -18,7 +18,7 @@ export class StatsCommand extends VortexCommand {
         const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
 
         const embed = new VortexEmbed()
-            .addField("Owner", owner.tag, true)
+            .addField("Owner", `@${owner.username}`, true)
             .addField("Library", "Discord.js", true)
             .addField("Commands", this.client.executables.commands.size.toString(), true)
             .addField("Commands Ran", this.client.statistics.commands.ran.toString(), true)
