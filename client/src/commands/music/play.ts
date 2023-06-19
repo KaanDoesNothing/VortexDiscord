@@ -1,7 +1,7 @@
 import {VortexCommand} from "../../lib/structures/Command";
-import {ChatInputCommandInteraction, InteractionReplyOptions, PermissionsString, SlashCommandBuilder} from "discord.js";
-import {GuildWarnTable} from "../../lib/Database";
+import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder} from "discord.js";
 import {musicCategoryName} from "./mod";
+import {isInVoiceChannel} from "../../lib/checks/Voice";
 
 export class PlayCommand extends VortexCommand {
     config = new SlashCommandBuilder()
@@ -10,6 +10,9 @@ export class PlayCommand extends VortexCommand {
         .addStringOption((arg) => arg.setName("input").setDescription("URL or Query").setRequired(true));
 
     category = musicCategoryName;
+
+    checks = [isInVoiceChannel];
+
     async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const query = ctx.options.getString("input");
 

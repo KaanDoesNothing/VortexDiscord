@@ -3,6 +3,8 @@ import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilde
 import {musicCategoryName} from "./mod";
 import {NoMusicPlaying} from "../../lib/Language";
 import {VortexEmbed} from "../../lib/structures/Embed";
+import {isInVoiceChannel} from "../../lib/checks/Voice";
+import {isMusicPlaying} from "../../lib/checks/MusicPlaying";
 
 export class QueueCommand extends VortexCommand {
     config = new SlashCommandBuilder()
@@ -10,12 +12,11 @@ export class QueueCommand extends VortexCommand {
         .setDescription("Queue");
 
     category = musicCategoryName;
+
+    checks = [isInVoiceChannel, isMusicPlaying];
+
     async exec(ctx: ChatInputCommandInteraction): Promise<InteractionReplyOptions> {
         const player = this.client.music.getPlayer(ctx.guildId);
-
-        if(!player) {
-            return {content: NoMusicPlaying};
-        }
 
         if(player.queue.length < 1) {
             await ctx.reply("Queue is empty!");

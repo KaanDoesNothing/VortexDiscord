@@ -11,12 +11,21 @@ export class CommandHandler extends BaseClass {
 
     async exec(ctx: ChatInputCommandInteraction) {
         try {
+            this.client.statistics.commands.ran++;
+
+            if(this.cmd.checks) {
+                for (const i in this.cmd.checks) {
+                    const check = this.cmd.checks[i];
+
+                    const res = check({client: this.client, ctx});
+                    if(res) return await ctx.reply(res);
+                }
+            }
+
             const res = await this.cmd.exec(ctx);
             if(typeof res === "object") {
                 await ctx.reply(res);
             }
-
-            this.client.statistics.commands.ran++;
         }catch(err) {
             console.log(err);
             await ctx.reply("An error occurred");

@@ -6,6 +6,7 @@ interface IVortexItem {
     identifier: string;
     name: string;
     price: number;
+    type: "tool" | "item";
     buyable?: boolean;
     stackable?: boolean;
     data?: any | IVortexPickaxeItem
@@ -13,10 +14,11 @@ interface IVortexItem {
 
 export const VortexItems = [];
 
-VortexItems.push({
+VortexItems.push(<IVortexItem>{
     identifier: "wood_pickaxe",
     name: "Wood Pickaxe",
     price: 1000,
+    type: "tool",
     buyable: true,
     stackable: false,
     data: {

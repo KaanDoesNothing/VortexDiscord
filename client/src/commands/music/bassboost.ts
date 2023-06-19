@@ -2,6 +2,8 @@ import {VortexCommand} from "../../lib/structures/Command";
 import {ChatInputCommandInteraction, InteractionReplyOptions, SlashCommandBuilder, User} from "discord.js";
 import {musicCategoryName} from "./mod";
 import {NoMusicPlaying} from "../../lib/Language";
+import {isInVoiceChannel} from "../../lib/checks/Voice";
+import {isMusicPlaying} from "../../lib/checks/MusicPlaying";
 
 const filters = [
     {
@@ -34,6 +36,9 @@ export class BassBoostCommand extends VortexCommand {
         })).setRequired(true));
 
     category = musicCategoryName;
+
+    checks = [isInVoiceChannel, isMusicPlaying];
+
     exec(ctx: ChatInputCommandInteraction): InteractionReplyOptions {
         const amount = ctx.options.getNumber("amount");
 

@@ -10,21 +10,18 @@ export class messageEvent extends VortexEvent {
     type = "messageCreate";
 
     async exec(msg: Message): Promise<void> {
-        if(msg.author.id === this.client.user.id) return;
+        if(msg.author.bot) return;
 
         this.client.statistics.messages.read++;
-
-        if(msg.author.bot) return;
 
         await this.client.userDataExists(msg.author.id);
         await this.client.guildDataExists(msg.guildId);
         await this.client.guildUserDataExists(msg.guildId, msg.author.id);
 
         const guildData = await GuildTable.findOne({guild_id: msg.guildId});
+        if(!guildData) return;
 
         await this.handleLevel(msg);
-
-        if(!guildData) return;
 
         if(msg.content.startsWith(guildData.settings.prefix as string)) {
             const commandName = msg.content.slice((guildData.settings.prefix as string).length).trim().split(/ +/g).shift().toLowerCase();
