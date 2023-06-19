@@ -97,14 +97,17 @@ export class slashParser {
         }
 
         return {
+            ...this.msg,
             client: client,
             reply: (content) => this.msg.reply(content as any),
+            editReply: (content) => this.msg.edit(content as any),
             user: this.msg.author,
             guild: this.msg.guild,
             guildId: this.msg.guildId,
             channel: this.msg.channel,
             resolved: true,
-            options: this.options
+            options: this.options,
+            isPollyFilled: true
         }
     }
 }
