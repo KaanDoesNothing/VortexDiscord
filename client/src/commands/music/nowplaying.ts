@@ -20,8 +20,6 @@ export class NowPlayingCommand extends VortexCommand {
 
         const track = player.queue.current;
 
-        console.log(track.requester);
-
         const embed = new VortexEmbed()
             .setThumbnail(track.thumbnail)
             .setTitle(`Now playing: ${track.title}`)
