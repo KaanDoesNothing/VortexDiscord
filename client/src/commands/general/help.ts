@@ -30,7 +30,7 @@ export class HelpCommand extends VortexCommand {
                 if(cmd.hidden) return;
 
                 if(cmd.category !== category) return;
-                commandsLine += (`\`${cmd.config.name}\` `);
+                commandsLine += (`\`${cmd.config.name}${cmd.dev ? `(Not Ready)` : ""}\` `);
             });
 
             if(commandsLine.length < 1) return;
