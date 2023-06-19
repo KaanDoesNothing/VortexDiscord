@@ -1,14 +1,9 @@
 import {VortexEvent} from "../lib/structures/Event";
-import {VortexClient} from "../lib/Client";
 import {UserTable} from "../lib/Database";
 import {MessageReaction} from "discord.js";
 import {EmojiDislike, EmojiLike} from "../lib/Constant";
 export class messageReactionAddEvent extends VortexEvent {
-    constructor(client: VortexClient) {
-        super(client);
-
-        this.type = "messageReactionAdd";
-    }
+    type = "messageReactionAdd";
 
     async exec(e: MessageReaction): Promise<void> {
         await this.client.userDataExists(e.message.author.id);
@@ -28,11 +23,7 @@ export class messageReactionAddEvent extends VortexEvent {
 }
 
 export class messageReactionRemoveEvent extends VortexEvent {
-    constructor(client: VortexClient) {
-        super(client);
-
-        this.type = "messageReactionRemove";
-    }
+    type = "messageReactionRemove";
 
     async exec(e: MessageReaction): Promise<void> {
         await this.client.userDataExists(e.message.author.id);

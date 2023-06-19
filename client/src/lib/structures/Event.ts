@@ -1,12 +1,7 @@
 import {VortexClient} from "../Client";
+import {BaseClass} from "./base";
 
-export class VortexEvent {
-    public client: VortexClient;
+export class VortexEvent extends BaseClass {
     public type?: string;
-
-    constructor(client: VortexClient) {
-        this.client = client;
-    }
-
     exec(ctx: any): void | Promise<void> {}
 }

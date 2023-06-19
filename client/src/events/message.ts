@@ -1,17 +1,13 @@
 import {VortexEvent} from "../lib/structures/Event";
 import {Message} from "discord.js";
-import {VortexClient} from "../lib/Client";
 import {GuildTable, GuildUserTable} from "../lib/Database";
 import {MessagesToLevel} from "../lib/Constant";
 import {VortexEmbed} from "../lib/structures/Embed";
 import {slashParser} from "../lib/slash/polyfill";
+import {CommandHandler} from "../lib/CommandHandler";
 
 export class messageEvent extends VortexEvent {
-    constructor(client: VortexClient) {
-        super(client);
-
-        this.type = "messageCreate";
-    }
+    type = "messageCreate";
 
     async exec(msg: Message): Promise<void> {
         if(msg.author.id === this.client.user.id) return;
@@ -44,18 +40,7 @@ export class messageEvent extends VortexEvent {
                 return;
             }
 
-            try {
-                const executed = await command.exec(res as any);
-
-                if(typeof executed === "object") {
-                    await msg.reply(executed as any);
-                }
-
-                this.client.statistics.commands.ran++;
-            }catch(err) {
-                console.log(err);
-                await msg.reply("An error occurred");
-            }
+            await new CommandHandler(command).setClient(this.client).exec(res as any);
         }
     }
 

@@ -1,15 +1,9 @@
 import {VortexEvent} from "../lib/structures/Event";
-import {Events, Routes, SlashCommandBuilder} from "discord.js";
-import {VortexClient} from "../lib/Client";
+import {Routes, SlashCommandBuilder} from "discord.js";
 import {rest} from "../index";
-import {VortexConfig} from "../config";
 
 export class readyEvent extends VortexEvent {
-    constructor(client: VortexClient) {
-        super(client);
-
-        this.type = "ready";
-    }
+    type = "ready";
 
     async exec(): Promise<void> {
         console.log(`Logged in as ${this.client.user?.tag}!`);

@@ -92,7 +92,7 @@ export class VortexClient extends Client {
         for (const i in events) {
             // @ts-ignore
             const event = events[i];
-            const instance = new event(this);
+            const instance = new event().setClient(this);
             log({type: "success", message: `Event Loaded: ${instance.type}`});
 
             this.on(instance.type, (...args) => {

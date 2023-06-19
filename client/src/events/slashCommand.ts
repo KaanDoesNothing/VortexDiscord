@@ -1,15 +1,11 @@
 import {VortexEvent} from "../lib/structures/Event";
-import {VortexClient} from "../lib/Client";
-import {Interaction, PermissionsBitField, PermissionsString} from "discord.js";
+import {Interaction, PermissionsString} from "discord.js";
 import {ClientMissingPermission, MemberMissingPermission} from "../lib/Language";
 import {VortexConfig} from "../config";
+import {CommandHandler} from "../lib/CommandHandler";
 
 export class slashCommandEvent extends VortexEvent {
-    constructor(client: VortexClient) {
-        super(client);
-
-        this.type = "interactionCreate";
-    }
+    type = "interactionCreate";
 
     async exec(interaction: Interaction): Promise<void> {
         if(interaction.isChatInputCommand()) {
@@ -50,17 +46,7 @@ export class slashCommandEvent extends VortexEvent {
                         }
                     }
 
-                    try {
-                        const res = await command.exec(interaction);
-                        if(typeof res === "object") {
-                            await interaction.reply(res);
-                        }
-
-                        this.client.statistics.commands.ran++;
-                    }catch(err) {
-                        console.log(err);
-                        await interaction.reply("An error occurred");
-                    }
+                    await new CommandHandler(command).setClient(this.client).exec(interaction);
                 }catch(err) {
                     console.log(err);
                 }
