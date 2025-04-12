@@ -1,0 +1,204 @@
+import mongoose, { Mongoose } from "mongoose";
+import { Database } from "./database";
+
+export const conn = new Mongoose();
+
+export interface DBDefault {
+    createdAt: string;
+}
+
+export interface IUserSchema extends DBDefault {
+    user_id: string;
+    economy: {
+        money: {
+            value: number;
+            cooldown: number;
+        }
+    },
+    inventory: {
+        items: string[]
+    },
+    profile: {
+        description: string;
+        likes: number;
+        dislikes: number
+    },
+    administrator: boolean;
+    blacklisted: boolean;
+}
+
+const UserSchema = new mongoose.Schema({
+    user_id: {type: mongoose.SchemaTypes.String, required: true},
+    economy: {
+        money: {
+            value: {type: mongoose.SchemaTypes.Number, default: 500},
+            cooldown: {type: mongoose.SchemaTypes.Number, default: 0}
+        }
+    },
+    inventory: {
+        items: {type: mongoose.SchemaTypes.Array, default: []}
+    },
+    profile: {
+        description: {type: mongoose.SchemaTypes.String, default: "None", maxlength: 100},
+        likes: {type: mongoose.SchemaTypes.Number, default: 0},
+        dislikes: {type: mongoose.SchemaTypes.Number, default: 0}
+    },
+    administrator: {type: mongoose.SchemaTypes.Boolean, default: false},
+    blacklisted: {type: mongoose.SchemaTypes.Boolean, default: false}
+}, {timestamps: true});
+
+export interface IGuildUserSchema extends DBDefault {
+    user_id: string;
+    guild_id: string;
+    economy: {
+        experience: {
+            level: number;
+            messages: number;
+        }
+    }
+}
+
+const GuildUserSchema = new mongoose.Schema({
+    user_id: {type: mongoose.SchemaTypes.String, required: true},
+    guild_id: {type: mongoose.SchemaTypes.String, required: true},
+    economy: {
+        experience: {
+            level: {type: mongoose.SchemaTypes.Number, default: 1},
+            messages: {type: mongoose.SchemaTypes.Number, default: 1},
+        }
+    }
+}, {timestamps: true});
+
+export interface IGuildWarnSchema extends DBDefault {
+    user_id: string;
+    guild_id: string;
+    reason: string;
+}
+
+const GuildWarnSchema = new mongoose.Schema({
+    user_id: {type: mongoose.SchemaTypes.String, required: true},
+    guild_id: {type: mongoose.SchemaTypes.String, required: true},
+    reason: {type: mongoose.SchemaTypes.String, required: true}
+}, {timestamps: true});
+
+export interface IGuildSchema extends DBDefault {
+    guild_id: string;
+    settings: {
+        economy: {
+            experience: {
+                enabled: boolean
+            }
+        },
+        blacklist: {
+            words: string[]
+        },
+        prefix: string;
+        custom: {
+            commands: [{name: string, code: string}]
+        }
+    }
+}
+
+const GuildSchema = new mongoose.Schema({
+    guild_id: {type: mongoose.SchemaTypes.String, required: true},
+    settings: {
+        economy: {
+            experience: {
+                enabled: {type: mongoose.SchemaTypes.Boolean, default: false}
+            }
+        },
+        blacklist: {
+            words: {type: mongoose.SchemaTypes.Array, default: []}
+        },
+        prefix: {type: mongoose.SchemaTypes.String, default: "=>", maxLength: 10},
+        custom: {
+            //name
+            //code
+            // {name: "test", code: ""}
+            commands: {type: mongoose.SchemaTypes.Array, default: []}
+        }
+    }
+}, {timestamps: true});
+
+const CacheSchema = new mongoose.Schema({
+    type: {type: mongoose.SchemaTypes.String, required: true},
+    key: {type: mongoose.SchemaTypes.String, required: true},
+    value: {}
+});
+
+export const UserTable = conn.model<IUserSchema>("User", UserSchema);
+export const GuildUserTable = conn.model<IGuildUserSchema>("GuildUser", GuildUserSchema);
+export const GuildTable = conn.model<IGuildSchema>("Guild", GuildSchema);
+export const CacheTable = conn.model("Cache", CacheSchema);
+export const GuildWarnTable = conn.model<IGuildWarnSchema>("GuildWarn", GuildWarnSchema);
+
+async function migrateUsers() {
+    console.time("Migrating users");
+    const userTableData = await UserTable.find();
+
+    await Promise.all(userTableData.map(async row => {
+        await Database.User.create({
+            user: row.user_id,
+            economy: {
+                balance: row.economy.money.value
+            },
+            profile: row.profile,
+            createdAt: row.createdAt
+        })
+    }));
+    console.timeEnd("Migrating users");
+}
+
+async function migrateGuildUsers() {
+    console.time("Migrating guild users");
+
+    const userGuildTableData = await GuildUserTable.find();
+    
+    await Promise.all(userGuildTableData.map(async row => {
+        await Database.GuildUser.create({
+            user: row.user_id,
+            server: row.guild_id,
+            profile: {
+                experience: row.economy.experience
+            },
+            createdAt: row.createdAt
+        })
+    }));
+    
+    console.timeEnd("Migrating guild users");
+}
+
+async function migrateWarns() {
+    console.time("Migrating warns")
+
+    const warnsData = await GuildWarnTable.find();
+
+    await Promise.all(warnsData.map(async row => {
+        await Database.Modlog.create({
+            server: row.guild_id,
+            user: "unknown",
+            target: row.user_id,
+            reason: row.reason,
+            type: "warn",
+            createdAt: row.createdAt
+        })
+    }));
+
+    console.timeEnd("Migrating warns")
+}
+
+async function migrateGuilds() {
+    console.time("Migrating Guilds")
+
+    const guildData = await GuildTable.find();
+
+    await Promise.all(guildData.map(async row => {
+        await Database.Guild.create({
+            server: row.guild_id,
+            prefix: row.settings.prefix,
+            createdAt: row.createdAt
+        })
+    }));
+
+    console.timeEnd("Migrating Guilds")
+}
