@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@sapphire/framework": "^5.3.3",
+    "@sapphire/plugin-api": "^8.0.0",
     "@sapphire/plugin-hmr": "^3.0.2",
     "@sapphire/utilities": "^3.18.2",
     "@typegoose/typegoose": "^12.14.0",

@@ -2,7 +2,7 @@ import mongoose, { Mongoose } from "mongoose";
 
 const mongoDB = new Mongoose();
 
-await mongoDB.connect(Bun.env.MONGODB_HOST!, {
+await mongoDB.connect(`${Bun.env.MONGODB_HOST}/${Bun.env.MONGODB_DATABASE}`, {
     authSource: "admin",
     user: Bun.env.MONGODB_USERNAME!,
     pass: Bun.env.MONGODB_PASSWORD!
@@ -10,7 +10,7 @@ await mongoDB.connect(Bun.env.MONGODB_HOST!, {
 
 const GuildSchema = new mongoose.Schema({
     server: {type: String, required: true, index: true},
-    prefix: {type: String, default: "->"}
+    prefix: {type: String, default: Bun.env.DEBUG ? "==>" : "=>"}
 }, {timestamps: true});
 
 const CommandLogSchema = new mongoose.Schema({
