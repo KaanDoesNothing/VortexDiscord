@@ -15,6 +15,7 @@ export class UserinfoCommand extends VortexCommand {
         const roles = member.roles.cache;
 
         const embed = new VortexEmbed()
+            .setTitle(member.user.username)
             .setThumbnail(member.user.avatarURL({size: 1024}) as string)
             .addField("Name", `@${member.user.username}`, true)
             .addField("ID", member.user.id.toString(), true)

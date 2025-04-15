@@ -15,6 +15,7 @@ export class ServerinfoCommand extends VortexCommand {
 
         const embed = new VortexEmbed()
             .setThumbnail(guild.iconURL() as string)
+            .setTitle("Server Information")
             .addField("Name", guild.name as string, true)
             .addField("ID", guild.id, true)
             .addField("Owner", owner.user.username, true)
