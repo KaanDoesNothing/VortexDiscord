@@ -33,7 +33,7 @@ export class KickCommand extends VortexCommand {
             user: ctx.user.id,
             target: member.user.id,
             reason
-        })
+        });
 
         return ctx.reply({content: `${member.user.tag} has been kicked.`});
     }
