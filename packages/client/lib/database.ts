@@ -20,7 +20,8 @@ const CommandLogSchema = new mongoose.Schema({
     server: {type: String, required: true, index: true},
     user: {type: String, required: true},
     command: { type: String, required: true, index: true },
-    parameters: { type: String, default: ""}
+    parameters: { type: String, default: ""},
+    slash: {type: Boolean, default: false}
 }, {timestamps: true});
 
 const ModLogSchema = new mongoose.Schema({

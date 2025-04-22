@@ -15,7 +15,8 @@ export class MessageCommandSuccess extends Listener {
             server: event.message.guildId,
             user: event.message.author.id,
             command: event.command.applicationCommandRegistry.commandName,
-            parameters: event.parameters
+            parameters: event.parameters,
+            slash: false
         });
     }
 }
