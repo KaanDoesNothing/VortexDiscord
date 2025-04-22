@@ -17,6 +17,7 @@ export class RolesCommand extends VortexCommand {
             .setThumbnail(guild.iconURL() as string)
             .setTitle("Server Roles")
             .setDescription(`${guild.roles.cache.map(role => `<@&${role.id}>`).join(", ")}`)
+            .setFooter({text: `Roles: ${guild.roles.cache.size}`})
 
         return ctx.reply({embeds: [embed]});
     }
