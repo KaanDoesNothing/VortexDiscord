@@ -1,14 +1,42 @@
-.idea/
-*/.vscode
-*/.env
-backup/
-*/deno.lock
-*/node_modules/
-*/package-lock.json
-*/dist
-*/yarn.lock
-client/dump.rdb
-*/cryptokey.json
+# dependencies (bun install)
+node_modules
+
+# output
+out
+dist
+*.tgz
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# local/private config and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.local
+
+# local editor / OS noise
 .vscode/
-node/
-client_old/
+.idea/
+.DS_Store
+
+# archived backups and legacy copies
+Backup/
+**/backup/
+**/client_old*/
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo

@@ -1,0 +1,23 @@
+{
+  "name": "client",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "^1.4.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@sapphire/framework": "^5.5.1",
+    "@sapphire/plugin-hmr": "^3.0.2",
+    "@sapphire/utilities": "^3.18.3",
+    "@typegoose/typegoose": "^13.5.0",
+    "canvas": "^3.2.3",
+    "canvas-constructor": "^7.0.2",
+    "discord.js": "^14.28.1",
+    "moment": "^2.31.0",
+    "mongoose": "^8.24.9"
+  }
+}
