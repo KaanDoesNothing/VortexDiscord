@@ -470,7 +470,17 @@ Custom commands and automatic messages can never ping `@everyone`, `@here` or ro
 
 **Public pages:** `/` (home), `/commands` (searchable command list) and `/stats` (live bot stats, shards, usage).
 
-**Bot owner:** the owner API (`/owner/*`: overview, server list and leave, user lookup and balance edits, blacklist, bot status, globally disabled commands) is implemented, but it has no dashboard page yet. Blacklisted users and servers are ignored by the bot; blacklisted servers are left automatically.
+### Admin panel (bot owners)
+
+Bot owners get an **Admin panel** link in the account menu (`/admin`). Owners are the Discord application's owner, or every member of its team, plus any IDs in `OWNER_IDS`. Owners can also open any server's dashboard.
+
+| Tab | What you can do |
+|---|---|
+| **Overview** | Servers, users, uptime, ping, memory, commands per hour, shard health, top commands, system info |
+| **Servers** | Every server the bot is in: search, sort by size, join date or name; open its dashboard, leave it, or blacklist it |
+| **Users** | Look up anyone by ID: profile, wallet, bank and bio (editable), birthday, mutual servers; blacklist them |
+| **Blacklist** | Blacklisted users (ignored everywhere) and servers (left immediately, and again if re-invited) |
+| **Bot settings** | The bot's status (online/idle/dnd, activity and text with live `{servers}` / `{users}`), and commands turned off in every server (owners can still use them) |
 
 ## Project layout
 

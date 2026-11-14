@@ -27,6 +27,7 @@
                         <div class="absolute right-0 mt-2 w-56 rounded-lg border border-zinc-800 bg-zinc-900 p-1 shadow-xl">
                             <div class="truncate px-3 py-2 text-sm text-zinc-400">Signed in as <span class="text-zinc-100">{{ user.displayName }}</span></div>
                             <NuxtLink to="/dashboard" class="block rounded px-3 py-2 text-sm hover:bg-zinc-800" @click="close">Your servers</NuxtLink>
+                            <NuxtLink v-if="user.isOwner" to="/admin" class="block rounded px-3 py-2 text-sm hover:bg-zinc-800" @click="close">Admin panel</NuxtLink>
                             <button type="button" class="block w-full rounded px-3 py-2 text-left text-sm text-red-300 hover:bg-zinc-800" @click="logout">Log out</button>
                         </div>
                     </details>

@@ -18,7 +18,9 @@ export default defineNuxtConfig({
     routeRules: {
         // The dashboard depends on the login cookie and is interactive, so it renders in the browser.
         "/dashboard/**": { ssr: false },
-        "/oauth/**": { ssr: false }
+        "/oauth/**": { ssr: false },
+        "/admin": { ssr: false },
+        "/admin/**": { ssr: false }
     },
     app: {
         head: {

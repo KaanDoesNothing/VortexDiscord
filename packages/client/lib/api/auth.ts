@@ -61,7 +61,8 @@ export async function requireGuildManager(req: Route.Request, res: Route.Respons
     }
 
     const member = await guild.members.fetch(auth.id).catch(() => null);
-    const allowed = guild.ownerId === auth.id || member?.permissions.has(MANAGE);
+    // Bot owners can open any server (from the admin panel).
+    const allowed = isOwner(auth.id) || guild.ownerId === auth.id || member?.permissions.has(MANAGE);
 
     if (!allowed) {
         res.status(HttpCodes.Forbidden).json({ error: "You need the Manage Server permission" });
