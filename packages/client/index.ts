@@ -1,3 +1,4 @@
+import "@sapphire/plugin-api/register";
 import { GatewayIntentBits, Message } from "discord.js";
 import { VortexClient } from "./lib/structures/client";
 import { LogLevel } from "@sapphire/framework";

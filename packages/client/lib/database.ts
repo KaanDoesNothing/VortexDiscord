@@ -11,7 +11,10 @@ await mongoDB.connect(Bun.env.MONGODB_HOST!, {
 
 const GuildSchema = new mongoose.Schema({
     server: {type: String, required: true, index: true},
-    prefix: {type: String, default: "->"}
+    prefix: {type: String, default: "->"},
+    commands: {
+        disabled: {type: [String], default: []}
+    }
 }, {timestamps: true});
 
 const CommandLogSchema = new mongoose.Schema({
