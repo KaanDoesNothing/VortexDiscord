@@ -3,25 +3,24 @@ import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
+// /ping: gateway latency and round-trip time.
 export class PingCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("ping")
-        .setDescription("Bot latency")
+        .setDescription("Check how fast the bot is responding");
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
+        // Slash replies return an InteractionCallbackResponse; prefix replies return the Message itself.
+        const response = await ctx.reply({ content: "Pinging…", withResponse: true }) as unknown as
+            { resource?: { message?: { createdTimestamp: number } | null }; createdTimestamp?: number };
+        const sentAt = response.resource?.message?.createdTimestamp ?? response.createdTimestamp ?? Date.now();
+        const roundTrip = sentAt - ctx.createdTimestamp;
+
         const embed = new VortexEmbed()
             .setTitle("Pong!")
-            .addFields({name: "API", value: this.container.client.ws.ping.toString()});
+            .addField("Gateway", `${Math.round(this.container.client.ws.ping)}ms`, true)
+            .addField("Round trip", `${roundTrip}ms`, true);
 
-        if((ctx as any).isPollyFilled) {
-            const sent = await ctx.reply("Pinging...");
-            embed.addFields({name: "Message", value: `${ctx.createdTimestamp - sent.createdTimestamp}ms`});
-
-            await sent.edit({embeds: [embed]})
-        }else {
-            const sent = await ctx.reply({ content: 'Pinging...', fetchReply: true });
-            embed.addFields({name: "Message", value: `${ctx.createdTimestamp - sent.createdTimestamp}ms`});
-            await ctx.editReply({embeds: [embed]});
-        }
+        return ctx.editReply({ content: "", embeds: [embed] });
     }
 }

@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class WaveCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /wave <member>: wave at someone, with a random GIF.
+export class WaveCommand extends RoleplayCommand {
+    protected readonly gif = "wave";
+    public override applicationCommandData = this.define("wave", "Wave at someone");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("wave")
-        .setDescription("Wave")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("wave", `${interaction.user.username} waved at ${member.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} waved at ${target}`;
     }
 }

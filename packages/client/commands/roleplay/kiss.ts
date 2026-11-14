@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class KissCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /kiss <member>: give someone a kiss, with a random GIF.
+export class KissCommand extends RoleplayCommand {
+    protected readonly gif = "kiss";
+    public override applicationCommandData = this.define("kiss", "Give someone a kiss");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("kiss")
-        .setDescription("Kiss")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("kiss", `${interaction.user.username} kissed ${member.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} kissed ${target}`;
     }
 }

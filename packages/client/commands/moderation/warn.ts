@@ -1,33 +1,39 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Database } from "../../lib/database";
+import { checkModerationTarget } from "../../lib/moderation";
+import { logModAction } from "../../lib/modlog";
 
+// /warn <user> [reason]: records a warning (see /warns) and DMs the user about it.
 export class WarnCommand extends VortexCommand {
     constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {...options,
-            requiredUserPermissions: ["ModerateMembers"]
+        super(context, {
+            ...options,
+            requiredUserPermissions: ["ModerateMembers"],
+            runIn: ["GUILD_ANY"]
         });
     }
-    
+
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("warn")
-        .setDescription("Warn")
-        .addUserOption((arg) => arg.setName("user").setDescription("User").setRequired(true))
-        .addStringOption((arg) => arg.setName("reason").setDescription("Reason").setRequired(false));
+        .setDescription("Give a member a formal warning; they get a DM and it's saved to their record")
+        .addUserOption((arg) => arg.setName("user").setDescription("Who to warn").setRequired(true))
+        .addStringOption((arg) => arg.setName("reason").setDescription("What the warning is for").setMaxLength(400));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember;
-        const reason = ctx.options.getString("reason") || "None";
+        const user = ctx.options.getUser("user", true);
+        const member = ctx.guild!.members.cache.get(user.id) ?? null;
+        const reason = ctx.options.getString("reason") ?? "None";
 
-        await Database.Modlog.create({
-            type: "warn",
-            server: ctx.guild!.id,
-            user: ctx.user.id,
-            target: member.user!.id,
-            reason
-        });
+        const problem = checkModerationTarget(ctx, member, user);
+        if (problem) return ctx.reply({ content: problem, ephemeral: true });
+        if (user.bot) return ctx.reply({ content: "Bots can't be warned.", ephemeral: true });
 
-        return ctx.reply({content: `${member.user.tag} has been warned.`});
+        await logModAction(ctx.guild!, { type: "warn", moderator: ctx.user, target: user, reason });
+
+        // Let them know; it's fine if their DMs are closed.
+        const dmSent = await user.send(`You were warned in **${ctx.guild!.name}**. Reason: ${reason}`).then(() => true, () => false);
+
+        return ctx.reply({ content: `${user.tag} has been warned.${dmSent ? "" : " (Couldn't DM them.)"}` });
     }
 }

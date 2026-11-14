@@ -1,53 +1,44 @@
-import {Command} from '@sapphire/framework';
-import {SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from '../../lib/structures/command';
-import { DBManager } from '../../lib/database';
-import { CurrencyName } from '../../lib/constant';
+import { Command } from "@sapphire/framework";
+import { SlashCommandBuilder } from "discord.js";
+import { DBManager } from "../../lib/database";
+import { ECONOMY, getCurrency } from "../../lib/economy";
+import { VortexCommand } from "../../lib/structures/command";
 
+// /coinflip <side> <bet>: 50/50 double-or-nothing.
 export class CoinflipCommand extends VortexCommand {
     public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options,
-            aliases: ["cf"]
-        });
+        super(context, { ...options, aliases: ["cf"] });
     }
 
-    public override applicationCommandData = new SlashCommandBuilder().setName("coinflip")
-        .setDescription("Flip a coin")
-        .addStringOption(option => option.setName("side")
+    public override applicationCommandData = new SlashCommandBuilder()
+        .setName("coinflip")
+        .setDescription("Bet coins on a coin flip: guess right and double your bet")
+        .addStringOption((option) => option.setName("side")
             .setDescription("Heads or tails")
             .addChoices(
-                {name: "Heads", value: "heads"}, {name: "Tails", value: "tails"},
-                {name: "H", value: "heads"}, {name: "T", value: "tails"}
-            ).setRequired(true))
-        .addIntegerOption(option => option.setName("amount")
-            .setDescription("Amount of coins")
-            .setMinValue(1)
-            .setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
+                { name: "Heads", value: "heads" }, { name: "Tails", value: "tails" },
+                // Short forms for prefix usage, e.g. "->cf h 100".
+                { name: "H", value: "heads" }, { name: "T", value: "tails" }
+            )
+            .setRequired(true))
+        .addIntegerOption((option) => option.setName("amount").setDescription("How much to bet").setMinValue(1).setMaxValue(ECONOMY.maxBet).setRequired(true));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const option = ctx.options.getString("side")!;
-        const amount = ctx.options.getInteger("amount")!;
+        const side = ctx.options.getString("side", true);
+        const amount = ctx.options.getInteger("amount", true);
+        const currency = await getCurrency(ctx.guildId);
 
-        const userData = await DBManager.getUser(ctx.user.id)
+        const result = Math.random() < 0.5 ? "heads" : "tails";
+        const won = result === side;
 
-        let generatedNumber = Math.floor(Math.random() * 2) === 0;
+        // Atomic: only applies if they can cover the bet.
+        const balance = await DBManager.adjustBalance(ctx.user.id, won ? amount : -amount, amount);
+        if (balance === null) return ctx.reply({ content: `You don't have ${currency.format(amount)} to bet.`, ephemeral: true });
 
-        let text = generatedNumber ? "heads" : "tails";
+        const outcome = won
+            ? `✅ It landed on **${result}**! You won ${currency.format(amount)}.`
+            : `❌ It landed on **${result}**. You lost ${currency.format(amount)}.`;
 
-        if (amount > userData.economy!.balance) return ctx.reply({content: `You don't have enough ${CurrencyName}.`});
-
-        const won = text === option;
-        const newBalance = won ? userData.economy!.balance + amount : userData.economy!.balance - amount;
-        const msgContent = won ? `:white_check_mark: You Won, ${amount} ${CurrencyName} have been added to your bank account.` : `:x: You lost, ${amount} ${CurrencyName} have been taken from your bank account.`;
-
-        userData.economy!.balance = newBalance;
-        await userData.save();
-
-        return ctx.reply(msgContent);
+        return ctx.reply({ content: `${outcome}\nWallet: ${currency.format(balance)}` });
     }
 }

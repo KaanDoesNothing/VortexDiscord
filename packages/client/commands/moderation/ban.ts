@@ -1,40 +1,49 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Database } from "../../lib/database";
+import { auditReason, checkModerationTarget } from "../../lib/moderation";
+import { logModAction, sendAppealDm } from "../../lib/modlog";
 
+// /ban <user> [reason] [delete_days]: bans a member, or any user by ID even if they aren't in the server.
 export class BanCommand extends VortexCommand {
     constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {...options,
+        super(context, {
+            ...options,
             requiredClientPermissions: ["BanMembers"],
-            requiredUserPermissions: ["BanMembers"]
+            requiredUserPermissions: ["BanMembers"],
+            runIn: ["GUILD_ANY"]
         });
     }
 
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("ban")
-        .setDescription("Ban")
-        .addUserOption((arg) => arg.setName("user").setDescription("User").setRequired(true))
-        .addStringOption((arg) => arg.setName("reason").setDescription("Reason").setRequired(false));
+        .setDescription("Ban a user from the server, even if they've already left")
+        .addUserOption((arg) => arg.setName("user").setDescription("Who to ban").setRequired(true))
+        .addStringOption((arg) => arg.setName("reason").setDescription("Why they're being banned (shown in the mod log and audit log)").setMaxLength(400))
+        .addIntegerOption((arg) => arg.setName("delete_days").setDescription("Delete their messages from the last N days (0-7)").setMinValue(0).setMaxValue(7));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember;
-        const reason = ctx.options.getString("reason") || "None";
+        const user = ctx.options.getUser("user", true);
+        const member = ctx.guild!.members.cache.get(user.id) ?? null;
+        const reason = ctx.options.getString("reason") ?? "None";
+        const deleteDays = ctx.options.getInteger("delete_days") ?? 0;
 
-        if(!member.bannable) {
-            return ctx.reply({content: `You can't ban the following user: ${member.user.tag}.`});
-        }
+        const problem = checkModerationTarget(ctx, member, user);
+        if (problem) return ctx.reply({ content: problem, ephemeral: true });
 
-        await member.ban({reason});
+        // The bot's role must be above theirs.
+        if (member && !member.bannable) return ctx.reply({ content: `I can't ban ${user.tag}: their role is above mine.`, ephemeral: true });
 
-        await Database.Modlog.create({
-            type: "ban",
-            server: ctx.guild!.id,
-            user: ctx.user.id,
-            target: member.user.id,
-            reason
-        })
+        // Appeal DM (if enabled in the dashboard) has to go out before the ban.
+        await sendAppealDm(ctx.guild!, user);
 
-        return ctx.reply({content: `${member.user.tag} has been banned.`});
+        await ctx.guild!.bans.create(user.id, {
+            reason: auditReason(ctx.user, reason),
+            deleteMessageSeconds: deleteDays * 86_400
+        });
+
+        await logModAction(ctx.guild!, { type: "ban", moderator: ctx.user, target: user, reason });
+
+        return ctx.reply({ content: `${user.tag} has been banned.` });
     }
 }

@@ -3,8 +3,19 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "bun index.ts",
+    "dev": "bun --watch index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit",
+    "check": "bun scripts/check-pieces.ts"
+  },
   "devDependencies": {
     "@types/bun": "^1.4.4",
+    "drizzle-kit": "^0.31.11",
+    "postgres": "^4.1.1",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
@@ -15,11 +26,10 @@
     "@sapphire/plugin-api": "^8.3.1",
     "@sapphire/plugin-hmr": "^3.0.2",
     "@sapphire/utilities": "^3.18.3",
-    "@typegoose/typegoose": "^13.5.0",
     "canvas": "^3.2.3",
     "canvas-constructor": "^7.0.2",
     "discord.js": "^14.28.1",
-    "moment": "^2.31.0",
-    "mongoose": "^8.24.9"
+    "drizzle-orm": "^0.45.4",
+    "moment": "^2.31.0"
   }
 }

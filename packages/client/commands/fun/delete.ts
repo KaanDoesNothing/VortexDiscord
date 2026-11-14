@@ -1,26 +1,31 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Canvas, loadImage } from "canvas-constructor/cairo";
+import { renderAvatarMeme } from "../../lib/images";
 
+// /delete [user]: Delete someone meme with someone's avatar (defaults to you).
 export class DeleteCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("delete")
-        .setDescription("Delete someone")
-        .addUserOption((option) => option.setName("user").setDescription("User"))
+        .setDescription("Put someone's avatar in the trash with a fake \"Delete this?\" dialog")
+        .addUserOption((option) => option.setName("user").setDescription("Whose avatar to use"));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember || ctx.member;
+        const user = ctx.options.getUser("user") ?? ctx.user;
 
-        const background = await loadImage("./assets/img/delete.png");
+        // Image rendering can take a moment; defer so Discord doesn't time out.
+        await ctx.deferReply();
 
-        const avatar = await loadImage(member.user.avatarURL({size: 1024, extension: "png"})!);
+        const image = await renderAvatarMeme(user, {
+            file: "delete.png",
+            width: 748,
+            height: 356,
+            layers: [
+                { kind: "template", x: 0, y: 0, width: 748, height: 356 },
+                { kind: "avatar", x: 122, y: 136, width: 191, height: 191 }
+            ]
+        });
 
-        const img = await new Canvas(748, 356)
-            .printImage(background, 0, 0)
-            .printImage(avatar, 122, 136, 191, 191)
-            .pngAsync();
-
-        return ctx.reply({files: [{name: "Delete.png", attachment: img}]});
+        return ctx.editReply({ files: [{ name: "delete.png", attachment: image }] });
     }
 }

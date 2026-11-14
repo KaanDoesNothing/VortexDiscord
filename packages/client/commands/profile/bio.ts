@@ -1,25 +1,21 @@
-import {Command} from '@sapphire/framework';
+import { Command } from "@sapphire/framework";
 import { SlashCommandBuilder } from "discord.js";
-import { VortexCommand } from '../../lib/structures/command';
-import { DBManager } from '../../lib/database';
+import { DBManager } from "../../lib/database";
+import { VortexCommand } from "../../lib/structures/command";
 
+// /bio <text>: sets the bio shown at the bottom of your /profile.
 export class BioCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("bio")
-        .setDescription("Change your bio")
-        .addStringOption((option) => option.setName("bio").setDescription("bio").setRequired(true));
+        .setDescription("Set the bio shown on your profile")
+        .addStringOption((option) => option.setName("bio").setDescription("Up to 100 characters about you").setMaxLength(100).setRequired(true));
 
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
+    public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
+        const bio = ctx.options.getString("bio", true).trim();
+        if (!bio) return ctx.reply({ content: "Your bio can't be empty.", ephemeral: true });
 
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const bio = interaction.options.getString("bio")!;
+        await DBManager.setBio(ctx.user.id, bio);
 
-        const userData = await DBManager.getUser(interaction.user.id);
-        userData.profile!.description = bio;
-        await userData.save();
-
-        return interaction.reply({content: "Updated."});
+        return ctx.reply({ content: "Your bio has been updated.", ephemeral: true });
     }
 }

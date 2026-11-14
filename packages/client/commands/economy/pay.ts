@@ -1,42 +1,32 @@
-import { Command } from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from '../../lib/structures/command';
-import { DBManager } from '../../lib/database';
-import { CurrencyName } from '../../lib/constant';
+import { Command } from "@sapphire/framework";
+import { SlashCommandBuilder } from "discord.js";
+import { DBManager } from "../../lib/database";
+import { getCurrency } from "../../lib/economy";
+import { VortexCommand } from "../../lib/structures/command";
 
+// /pay <member> <amount>: give coins from your wallet to someone. Atomic (see DBManager.transfer).
 export class PayCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
+    constructor(context: Command.LoaderContext, options: Command.Options) {
+        super(context, { ...options, aliases: ["give"] });
     }
 
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("pay")
-        .setDescription("Pay someone")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true))
-        .addNumberOption(option => option.setName("amount").setDescription("amount").setMinValue(1).setRequired(true));
+        .setDescription("Send coins from your wallet to another member")
+        .addUserOption((option) => option.setName("member").setDescription("Who to pay").setRequired(true))
+        .addIntegerOption((option) => option.setName("amount").setDescription("How much to send").setMinValue(1).setRequired(true));
 
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
+    public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
+        const target = ctx.options.getUser("member", true);
+        const amount = ctx.options.getInteger("amount", true);
+        const currency = await getCurrency(ctx.guildId);
 
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember;
-        const amount = interaction.options.getNumber("amount")!;
+        if (target.id === ctx.user.id) return ctx.reply({ content: "Nice try.", ephemeral: true });
+        if (target.bot) return ctx.reply({ content: "Bots can't receive coins.", ephemeral: true });
 
-        if(member.user.id === interaction.user.id) return interaction.reply({content: "Nice try."});
+        const paid = await DBManager.transfer(ctx.user.id, target.id, amount);
+        if (!paid) return ctx.reply({ content: `You don't have ${currency.format(amount)} in your wallet.`, ephemeral: true });
 
-        const userData = await DBManager.getUser(interaction.user.id);
-        const targetData = await DBManager.getUser(member.user.id);
-
-        if(amount > userData.economy!.balance) return interaction.reply({content: "Insufficient balance"});
-        userData.economy!.balance -= amount;
-        targetData.economy!.balance += amount;
-
-        await userData.save();
-        await targetData.save();
-
-        return interaction.reply({content: `You have given ${amount} ${CurrencyName} to ${member.user.username}.`});
+        return ctx.reply({ content: `💸 You sent ${currency.format(amount)} to ${target}.`, allowedMentions: { users: [target.id] } });
     }
 }

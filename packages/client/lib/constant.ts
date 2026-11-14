@@ -1,8 +1,6 @@
-export const DailyEconomyReward = 1000;
-export const DailyEconomyCooldown = 43200000;
-export const MessagesToLevel = 100;
+// Bot-wide constants. Per-server options live in lib/settings.ts (edited from the dashboard);
+// economy tuning lives in lib/economy.ts (ECONOMY).
+
+// Reactions counted as likes/dislikes on someone's profile.
 export const EmojiLike = "👍";
 export const EmojiDislike = "👎";
-export const CurrencyName = "Coins";
-export const EconomyDailyReward = 500;
-export const EconomyDailyTimeout = 86400000;

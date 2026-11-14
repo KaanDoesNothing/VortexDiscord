@@ -1,38 +1,34 @@
 import { Command } from "@sapphire/framework";
 import { SlashCommandBuilder } from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
 import { DBManager } from "../../lib/database";
+import { VortexCommand } from "../../lib/structures/command";
 
+// /command <name>: toggles a command on/off for this server (same as the dashboard's Commands page).
 export class CommandCommand extends VortexCommand {
     constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {...options,
-            requiredUserPermissions: ["Administrator"]
+        super(context, {
+            ...options,
+            requiredUserPermissions: ["ManageGuild"],
+            runIn: ["GUILD_ANY"]
         });
     }
 
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("command")
-        .setDescription("Enable or disable commands")
-        .addStringOption((arg) => arg.setName("command").setDescription("Command").setRequired(true));
+        .setDescription("Turn a command on or off for this server")
+        .addStringOption((arg) => arg.setName("command").setDescription("The command's name or alias").setRequired(true));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const commandName = ctx.options.getString("command")!;
+        const query = ctx.options.getString("command", true).toLowerCase().replace(/^\//, "");
+        const store = this.container.stores.get("commands");
+        const command = store.get(query) ?? store.aliases.get(query);
 
-        if(commandName === "command") return ctx.reply({content: "Whoops."});
+        if (!command) return ctx.reply({ content: `There's no command called \`${query}\`.`, ephemeral: true });
+        // Disabling this one would make it impossible to turn anything back on from Discord.
+        if (command.name === this.name) return ctx.reply({ content: "This command can't be disabled.", ephemeral: true });
 
-        if(this.container.stores.get("commands").filter(command => command.name === commandName).size < 1) return ctx.reply({content: "Command doesn't exist"});
+        const disabled = await DBManager.toggleCommand(ctx.guild!.id, command.name);
 
-        const guildData = await DBManager.getGuild(ctx.guild!.id);
-        if(guildData.commands?.disabled.includes(commandName)) {
-            await guildData.updateOne({$pull: {"commands.disabled": commandName}});
-
-            return ctx.reply({content: "Command has been enabled."});
-        }else {
-            guildData.commands?.disabled.push(commandName);
-
-            await guildData.save();
-
-            return ctx.reply({content: "Command has been disabled."});
-        }
+        return ctx.reply({ content: `\`${command.name}\` is now **${disabled ? "disabled" : "enabled"}** on this server.` });
     }
 }

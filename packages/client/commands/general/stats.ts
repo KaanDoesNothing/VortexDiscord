@@ -1,33 +1,41 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, User } from "discord.js";
+import { SlashCommandBuilder, Team, time, version as djsVersion } from "discord.js";
+import os from "node:os";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
-import os from "node:os";
 
+// /stats: bot-wide numbers.
 export class StatsCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("stats")
-        .setDescription("Bot stats")
+        .setDescription("Bot statistics: servers, users, memory, uptime and more");
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const application = await this.container.client.application!.fetch();
-        const owner = application.owner as User;
+        const { client } = this.container;
+        const application = await client.application!.fetch();
 
-        const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
+        // The app can be owned by a user or a team.
+        const owner = application.owner instanceof Team
+            ? `${application.owner.name} (team)`
+            : application.owner ? `@${application.owner.username}` : "Unknown";
+
+        const memoryMb = process.memoryUsage().rss / 1024 / 1024;
+        const users = client.guilds.cache.reduce((sum, guild) => sum + guild.memberCount, 0);
 
         const embed = new VortexEmbed()
-            .addField("Owner", `@${owner.username}`, true)
-            .addField("Library", "Discord.js", true)
-            // .addField("Commands", this.container.client.executables.commands.size.toString(), true)
-            // .addField("Commands Ran", this.container.client.statistics.commands.ran.toString(), true)
-            // .addField("Messages Read", this.container.client.statistics.messages.read.toString(), true)
-            .addField("Shards", this.container.client.ws.shards.size.toString(), true)
-            .addField("Guilds", this.container.client.guilds.cache.size.toString(), true)
-            .addField("Channels", this.container.client.channels.cache.size.toString(), true)
-            .addField("Users", this.container.client.guilds.cache.reduce((prev, next) => prev + next.memberCount, 0).toString(), true)
-            .addField("Memory", `${(Math.round(usedMemory * 100) / 100).toFixed(0)} MB`, true)
-            .addField("OS", os.platform(), true);
+            .setTitle(`${client.user!.username} stats`)
+            .setThumbnail(client.user!.displayAvatarURL())
+            .addField("Owner", owner, true)
+            .addField("Servers", client.guilds.cache.size.toLocaleString(), true)
+            .addField("Users", users.toLocaleString(), true)
+            .addField("Channels", client.channels.cache.size.toLocaleString(), true)
+            .addField("Commands", this.container.stores.get("commands").size.toString(), true)
+            .addField("Shards", client.ws.shards.size.toString(), true)
+            .addField("Memory", `${memoryMb.toFixed(0)} MB`, true)
+            .addField("Runtime", `Bun ${Bun.version} · discord.js ${djsVersion}`, true)
+            .addField("OS", `${os.platform()} ${os.arch()}`, true)
+            .addField("Online since", time(new Date(Date.now() - (client.uptime ?? 0)), "R"), true);
 
-        return ctx.reply({embeds: [embed]});
+        return ctx.reply({ embeds: [embed] });
     }
 }

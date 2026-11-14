@@ -1,28 +1,14 @@
-import {Events, Listener} from "@sapphire/framework";
-import {Message, MessageReaction} from "discord.js";
-import { DBManager } from "../lib/database";
-import { EmojiDislike, EmojiLike } from "../lib/constant";
+import { Events, Listener } from "@sapphire/framework";
+import type { MessageReaction, PartialMessageReaction, PartialUser, User } from "discord.js";
+import { handleReaction } from "../lib/reactions";
 
-export class MessageReactionRemove extends Listener {
+// Removing a 👍 / 👎 takes the like/dislike back.
+export class MessageReactionRemoveListener extends Listener<typeof Events.MessageReactionRemove> {
     public constructor(context: Listener.LoaderContext, options: Listener.Options) {
-        super(context, {
-            ...options,
-            once: false,
-            event: Events.MessageReactionRemove
-        });
+        super(context, { ...options, event: Events.MessageReactionRemove });
     }
 
-    public async run(e: MessageReaction) {
-        const userData = await DBManager.getUser(e.message.author!.id);
-
-        if(e.emoji.name === EmojiLike) {
-            userData.profile!.likes--;
-
-            await userData.save();
-        }else if(e.emoji.name === EmojiDislike) {
-            userData.profile!.dislikes--;
-
-            await userData.save();
-        }
+    public async run(reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
+        return handleReaction(reaction, user, -1);
     }
 }

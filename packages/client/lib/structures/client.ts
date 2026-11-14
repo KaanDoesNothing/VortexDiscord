@@ -1,14 +1,10 @@
-import {type Awaitable, SapphireClient, type SapphirePrefix} from "@sapphire/framework";
-import {Message, type ClientOptions} from "discord.js";
+import { SapphireClient } from "@sapphire/framework";
+import type { ClientOptions } from "discord.js";
 
+// The bot's client. Sapphire loads commands/, listeners/, preconditions/ and routes/
+// automatically from the folder containing the entry file (index.ts).
 export class VortexClient extends SapphireClient {
-    constructor(options: ClientOptions) {
+    public constructor(options: ClientOptions) {
         super(options);
-
-        // this.fetchPrefix = (message: Message) => this.fetchGuildPrefix(message);
     }
-
-    // fetchGuildPrefix(message: Message): Awaitable<SapphirePrefix> {
-    //     return this.options.defaultPrefix!;
-    // }
 }

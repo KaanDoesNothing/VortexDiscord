@@ -1,0 +1,25 @@
+{
+  "name": "frontend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --bun nuxt dev --port 7807",
+    "build": "bun --bun nuxt build",
+    "start": "bun .output/server/index.mjs",
+    "preview": "bun --bun nuxt preview --port 7807",
+    "generate": "bun --bun nuxt generate",
+    "typecheck": "bun --bun nuxt typecheck",
+    "postinstall": "bun --bun nuxt prepare"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "nuxt": "^4.6.4",
+    "tailwindcss": "^4.3.5",
+    "vue": "^3.5.45",
+    "vue-router": "^5.5.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.14"
+  }
+}

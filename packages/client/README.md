@@ -1,15 +1,11 @@
-# client
+# Vortex bot (client)
 
-To install dependencies:
+The Discord bot and the HTTP API used by the dashboard.
+
+Setup, commands and the development guide are in the [main README](../../README.md).
 
 ```bash
+cp .env.example .env   # fill in DISCORD_TOKEN and DATABASE_URL
 bun install
+bun run dev
 ```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.2.5. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class PokeCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /poke <member>: poke someone to get their attention, with a random GIF.
+export class PokeCommand extends RoleplayCommand {
+    protected readonly gif = "poke";
+    public override applicationCommandData = this.define("poke", "Poke someone to get their attention");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("poke")
-        .setDescription("Poke")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("poke", `${member.user.username} got poked by ${interaction.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} poked ${target}`;
     }
 }

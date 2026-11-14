@@ -1,26 +1,31 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Canvas, loadImage } from "canvas-constructor/cairo";
+import { renderAvatarMeme } from "../../lib/images";
 
+// /wasted [user]: Wasted meme with someone's avatar (defaults to you).
 export class WastedCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("wasted")
-        .setDescription("Wasted")
-        .addUserOption((option) => option.setName("user").setDescription("User"))
+        .setDescription("Give someone's avatar the GTA-style WASTED screen")
+        .addUserOption((option) => option.setName("user").setDescription("Whose avatar to use"));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember || ctx.member;
+        const user = ctx.options.getUser("user") ?? ctx.user;
 
-        const background = await loadImage("./assets/img/wasted.png");
+        // Image rendering can take a moment; defer so Discord doesn't time out.
+        await ctx.deferReply();
 
-        const avatar = await loadImage(member.user.avatarURL({size: 1024, extension: "png"})!);
+        const image = await renderAvatarMeme(user, {
+            file: "wasted.png",
+            width: 1000,
+            height: 1000,
+            layers: [
+                { kind: "avatar", x: 0, y: 0, width: 1000, height: 1000 },
+                { kind: "template", x: 0, y: 0, width: 1000, height: 1000 }
+            ]
+        });
 
-        const img = await new Canvas(1000, 1000)
-            .printImage(avatar, 0, 0, 1000, 1000)
-            .printImage(background, 0, 0, 1000, 1000)
-            .pngAsync();
-
-        return ctx.reply({files: [{name: "Wasted.png", attachment: img}]});
+        return ctx.editReply({ files: [{ name: "wasted.png", attachment: image }] });
     }
 }

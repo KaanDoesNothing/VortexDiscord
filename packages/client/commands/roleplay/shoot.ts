@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class ShootCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /shoot <member>: shoot someone (it's just a GIF), with a random GIF.
+export class ShootCommand extends RoleplayCommand {
+    protected readonly gif = "shoot";
+    public override applicationCommandData = this.define("shoot", "Shoot someone (it's just a GIF)");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("shoot")
-        .setDescription("Shoot")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("shoot", `${member.user.username} got shot by ${interaction.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} shot ${target}`;
     }
 }

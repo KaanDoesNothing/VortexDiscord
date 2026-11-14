@@ -1,18 +1,27 @@
 import { Command } from "@sapphire/framework";
 import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
+import { VortexEmbed } from "../../lib/structures/embed";
 
+const REPLIES = [
+    "Yes.", "No.", "Absolutely.", "Absolutely not.", "Of course.", "Without a doubt.",
+    "Ask me later.", "I didn't get that, please ask again.", "Don't count on it.",
+    "Signs point to yes.", "Very doubtful.", "Better not tell you now."
+];
+
+// /8ball <question>: a random magic 8-ball answer.
 export class EightBallCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("8ball")
-        .setDescription("Ask a yes-or-no question and get a random, mystical answer from the magic 8-Ball.")
-        .addStringOption((option) => option.setName("question").setRequired(true).setDescription("Question"));
+        .setDescription("Ask the magic 8-ball a yes-or-no question")
+        .addStringOption((option) => option.setName("question").setDescription("A yes-or-no question for the 8-ball").setMaxLength(250).setRequired(true));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const replies = ["Yes", "No", "I didn't get that, please ask again", "Ask me later", "Of Course", "Absolutely not"]
+        const question = ctx.options.getString("question", true);
+        const answer = REPLIES[Math.floor(Math.random() * REPLIES.length)]!;
 
-		const result = Math.floor((Math.random() * replies.length));
+        const embed = new VortexEmbed().setTitle("🎱 Magic 8-ball").addField("Question", question).addField("Answer", answer);
 
-        return ctx.reply({content: replies[result]});
+        return ctx.reply({ embeds: [embed], allowedMentions: { parse: [] } });
     }
 }

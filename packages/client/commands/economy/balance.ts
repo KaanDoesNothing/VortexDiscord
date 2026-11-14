@@ -1,31 +1,34 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from '../../lib/structures/command';
-import { DBManager } from '../../lib/database';
-import { CurrencyName } from '../../lib/constant';
+import { Command } from "@sapphire/framework";
+import { SlashCommandBuilder } from "discord.js";
+import { DBManager } from "../../lib/database";
+import { getCurrency } from "../../lib/economy";
+import { VortexCommand } from "../../lib/structures/command";
+import { VortexEmbed } from "../../lib/structures/embed";
 
+// /balance [member]: wallet and bank. Balances are global (shared across servers).
 export class BalanceCommand extends VortexCommand {
     public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options,
-            aliases: ["bal"]
-        });
+        super(context, { ...options, aliases: ["bal", "wallet"] });
     }
 
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("balance")
-        .setDescription("Account balance")
-        .addUserOption(option => option.setName("member").setDescription("member"));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
+        .setDescription("Check your wallet and bank, or someone else's")
+        .addUserOption((option) => option.setName("member").setDescription("Whose balance to check (defaults to you)"));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("member") as GuildMember || ctx.member;
+        const user = ctx.options.getUser("member") ?? ctx.user;
+        if (user.bot) return ctx.reply({ content: "Bots don't have a balance.", ephemeral: true });
 
-        const userData = await DBManager.getUser(member.user.id);
+        const [data, currency] = await Promise.all([DBManager.getUser(user.id), getCurrency(ctx.guildId)]);
 
-        return ctx.reply({content: member.user.id === ctx.user.id ? `You have ${userData.economy?.balance} ${CurrencyName}.` : `${member.user.username} has ${userData.economy?.balance} ${CurrencyName}.`});
+        const embed = new VortexEmbed()
+            .setAuthor({ name: `${user.displayName}'s balance`, iconURL: user.displayAvatarURL() })
+            .addField("Wallet", currency.format(data.balance), true)
+            .addField("Bank", currency.format(data.bank), true)
+            .addField("Total", currency.format(data.balance + data.bank), true)
+            .setFooter({ text: "Coins in the bank are safe from /rob" });
+
+        return ctx.reply({ embeds: [embed] });
     }
 }

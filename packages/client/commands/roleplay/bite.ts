@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class BiteCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /bite <member>: give someone a playful bite, with a random GIF.
+export class BiteCommand extends RoleplayCommand {
+    protected readonly gif = "bite";
+    public override applicationCommandData = this.define("bite", "Give someone a playful bite");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("bite")
-        .setDescription("Bite")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("bite", `${member.user.username} got bitten by ${interaction.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} bit ${target}`;
     }
 }

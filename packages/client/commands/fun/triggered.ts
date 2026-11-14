@@ -1,26 +1,31 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Canvas, loadImage } from "canvas-constructor/cairo";
+import { renderAvatarMeme } from "../../lib/images";
 
+// /triggered [user]: Trigger someone meme with someone's avatar (defaults to you).
 export class TriggeredCommand extends VortexCommand {
     public override applicationCommandData = new SlashCommandBuilder()
         .setName("triggered")
-        .setDescription("Trigger someone")
-        .addUserOption((option) => option.setName("user").setDescription("User"))
+        .setDescription("Slap a TRIGGERED banner on someone's avatar")
+        .addUserOption((option) => option.setName("user").setDescription("Whose avatar to use"));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember || ctx.member;
+        const user = ctx.options.getUser("user") ?? ctx.user;
 
-        const background = await loadImage("./assets/img/triggered.png");
+        // Image rendering can take a moment; defer so Discord doesn't time out.
+        await ctx.deferReply();
 
-        const avatar = await loadImage(member.user.avatarURL({size: 1024, extension: "png"})!);
+        const image = await renderAvatarMeme(user, {
+            file: "triggered.png",
+            width: 1000,
+            height: 1000,
+            layers: [
+                { kind: "avatar", x: 0, y: 0, width: 1000, height: 1000 },
+                { kind: "template", x: 0, y: 800, width: 1000, height: 200 }
+            ]
+        });
 
-        const img = await new Canvas(1000, 1000)
-            .printImage(avatar, 0, 0, 1000, 1000)
-            .printImage(background, 0, 800, 1000, 200)
-            .pngAsync();
-
-        return ctx.reply({files: [{name: "Triggered.png", attachment: img}]});
+        return ctx.editReply({ files: [{ name: "triggered.png", attachment: image }] });
     }
 }

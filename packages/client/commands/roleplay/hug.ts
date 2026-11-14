@@ -1,26 +1,11 @@
-import {Command} from '@sapphire/framework';
-import {GuildMember, SlashCommandBuilder} from "discord.js";
-import { VortexCommand } from "../../lib/structures/command";
+import { RoleplayCommand } from "../../lib/structures/roleplay";
 
-export class HugCommand extends VortexCommand {
-    public constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {
-            ...options
-        });
-    }
+// /hug <member>: give someone a warm hug, with a random GIF.
+export class HugCommand extends RoleplayCommand {
+    protected readonly gif = "hug";
+    public override applicationCommandData = this.define("hug", "Give someone a warm hug");
 
-    public override applicationCommandData = new SlashCommandBuilder()
-        .setName("hug")
-        .setDescription("Hug")
-        .addUserOption(option => option.setName("member").setDescription("member").setRequired(true));
-
-    public override registerApplicationCommands(registry: Command.Registry) {
-        registry.registerChatInputCommand(this.applicationCommandData);
-    }
-
-    public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        const member = interaction.options.getMember("member") as GuildMember || interaction.member;
-
-        return interaction.reply(await this.roleplayEmbed("hug", `${interaction.user.username} hugged ${member.user.username}`));
+    protected message(author: string, target: string) {
+        return `${author} hugged ${target}`;
     }
 }

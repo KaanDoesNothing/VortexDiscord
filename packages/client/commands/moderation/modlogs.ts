@@ -1,35 +1,37 @@
 import { Command } from "@sapphire/framework";
-import { GuildMember, SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, time } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
-import { Database } from "../../lib/database";
+import { DBManager } from "../../lib/database";
 import { VortexEmbed } from "../../lib/structures/embed";
 
+// /modlogs <user>: the 10 most recent moderation actions against a user in this server.
 export class ModLogsCommand extends VortexCommand {
     constructor(context: Command.LoaderContext, options: Command.Options) {
-        super(context, {...options,
-            requiredUserPermissions: ["ModerateMembers"]
+        super(context, {
+            ...options,
+            requiredUserPermissions: ["ModerateMembers"],
+            runIn: ["GUILD_ANY"]
         });
     }
-    
+
     public override applicationCommandData = new SlashCommandBuilder()
-    .setName("modlogs")
-    .setDescription("Modlogs")
-    .addUserOption((arg) => arg.setName("user").setDescription("User").setRequired(true));
+        .setName("modlogs")
+        .setDescription("Show the last 10 warns, kicks, bans and deafens for a user")
+        .addUserOption((arg) => arg.setName("user").setDescription("Whose moderation history to show").setRequired(true));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const member = ctx.options.getMember("user") as GuildMember;
+        const user = ctx.options.getUser("user", true);
+        const logs = await DBManager.getModLogs(ctx.guild!.id, user.id, { limit: 10 });
 
-        const warnList = await Database.Modlog.find({server: ctx.guild!.id, target: member.user.id}).sort({createdAt: -1}).limit(10);
+        const embed = new VortexEmbed().setTitle(`${user.tag}'s mod log`).setThumbnail(user.displayAvatarURL());
 
-        const embed = new VortexEmbed()
-            .setTitle(`${member.user.tag}'s modlogs`);
+        if (!logs.length) embed.setDescription("No moderation actions recorded.");
 
-        for (const i in warnList) {
-            const row = warnList[i]!;
-
-            embed.addField(row.type, `${row.createdAt.toLocaleString()}: ${row.reason}`);
+        for (const row of logs) {
+            // <t:...:R> renders as "3 days ago" in each viewer's timezone.
+            embed.addField(`${row.type} · ${time(row.createdAt, "R")}`, `${row.reason.slice(0, 900)}${row.moderatorId ? `\nBy <@${row.moderatorId}>` : ""}`);
         }
 
-        return ctx.reply({embeds: [embed]});
+        return ctx.reply({ embeds: [embed], allowedMentions: { parse: [] } });
     }
 }
