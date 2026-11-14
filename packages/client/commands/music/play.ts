@@ -4,7 +4,7 @@ import type { SearchPlatform } from "lavalink-client";
 import { addTracks, getOrCreatePlayer, startIfIdle } from "../../lib/music/enqueue";
 import { MusicCommand } from "../../lib/music/command";
 import { isDj } from "../../lib/music/guards";
-import { trackDuration, trackLink } from "../../lib/music/format";
+import { musicError, trackDuration, trackLink } from "../../lib/music/format";
 import { VortexEmbed } from "../../lib/structures/embed";
 
 // /play <query> [source] [next]: plays a link (song or playlist from YouTube, Spotify, SoundCloud,
@@ -37,12 +37,20 @@ export class PlayCommand extends MusicCommand {
 
         await ctx.deferReply();
 
-        const player = await getOrCreatePlayer(member as GuildMember, ctx.channelId, settings).catch(() => null);
-        if (!player) return ctx.editReply("I couldn't join your voice channel. Check that I can connect and speak there.");
+        let player;
+        try {
+            player = await getOrCreatePlayer(member as GuildMember, ctx.channelId, settings);
+        } catch (error) {
+            this.container.logger.error(`[music] couldn't join voice in ${ctx.guildId}:`, error);
+            return ctx.editReply(`I couldn't join your voice channel (${musicError(error)}). Check that I can connect and speak there.`);
+        }
 
         // Links are loaded directly; anything else is searched on the chosen platform.
         const isUrl = /^https?:\/\//i.test(query);
-        const result = await player.search(isUrl ? query : { query, source }, ctx.user).catch(() => null);
+        const result = await player.search(isUrl ? query : { query, source }, ctx.user).catch((error) => {
+            this.container.logger.error(`[music] search failed in ${ctx.guildId}:`, error);
+            return { loadType: "error" as const, exception: { message: musicError(error) }, tracks: [], playlist: null };
+        });
 
         if (!result || result.loadType === "error") return ctx.editReply(`Couldn't load that${result?.exception?.message ? `: ${result.exception.message}` : "."}`);
         if (!result.tracks.length) return ctx.editReply(`No results for **${query.slice(0, 100)}**.`);
@@ -53,7 +61,12 @@ export class PlayCommand extends MusicCommand {
         if (!added) return ctx.editReply(`Couldn't add that: ${reason}.`);
 
         const wasIdle = !player.playing && !player.paused;
-        await startIfIdle(player);
+        try {
+            await startIfIdle(player);
+        } catch (error) {
+            this.container.logger.error(`[music] couldn't start playback in ${ctx.guildId}:`, error);
+            return ctx.editReply(`The song was queued but playback failed to start: ${musicError(error)}`);
+        }
 
         const embed = new VortexEmbed();
         if (isPlaylist) {

@@ -28,7 +28,10 @@ export class SearchCommand extends MusicCommand {
 
         // Search through any connected node without joining voice yet.
         const node = [...music!.nodeManager.nodes.values()].find((n) => n.connected)!;
-        const result = await node.search({ query, source }, ctx.user).catch(() => null);
+        const result = await node.search({ query, source }, ctx.user).catch((error) => {
+            this.container.logger.error(`[music] search failed in ${ctx.guildId}:`, error);
+            return null;
+        });
         const tracks = result?.tracks.slice(0, 10) ?? [];
         if (!tracks.length) return ctx.reply({ content: `No results for **${query.slice(0, 100)}**.`, ephemeral: true });
 
@@ -53,7 +56,10 @@ export class SearchCommand extends MusicCommand {
         if (!choice) return message.edit({ components: [], embeds: [embed.setFooter({ text: "Timed out" })] }).catch(() => null);
 
         const picked = choice.values.map((v) => tracks[Number(v)]!);
-        const player = await getOrCreatePlayer(member as GuildMember, ctx.channelId, settings).catch(() => null);
+        const player = await getOrCreatePlayer(member as GuildMember, ctx.channelId, settings).catch((error) => {
+            this.container.logger.error(`[music] couldn't join voice in ${ctx.guildId}:`, error);
+            return null;
+        });
         if (!player) return choice.update({ content: "I couldn't join your voice channel.", embeds: [], components: [] });
 
         const { added, reason } = await addTracks(player, picked, ctx.user, settings);

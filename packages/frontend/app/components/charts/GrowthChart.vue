@@ -26,8 +26,8 @@
         </div>
         <table class="sr-only">
             <caption>Member joins and leaves per day</caption>
-            <tr><th>Day</th><th>Joins</th><th>Leaves</th></tr>
-            <tr v-for="d in data" :key="d.day"><td>{{ d.day }}</td><td>{{ d.joins }}</td><td>{{ d.leaves }}</td></tr>
+            <thead><tr><th>Day</th><th>Joins</th><th>Leaves</th></tr></thead>
+            <tbody><tr v-for="d in data" :key="d.day"><td>{{ d.day }}</td><td>{{ d.joins }}</td><td>{{ d.leaves }}</td></tr></tbody>
         </table>
     </div>
 </template>

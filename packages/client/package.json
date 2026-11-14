@@ -10,7 +10,8 @@
     "db:migrate": "bun scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
-    "check": "bun scripts/check-pieces.ts"
+    "check": "bun scripts/check-pieces.ts",
+    "check:music": "bun scripts/check-music.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

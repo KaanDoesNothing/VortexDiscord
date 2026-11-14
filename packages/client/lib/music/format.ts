@@ -37,6 +37,12 @@ export interface Requester { id: string; username: string; avatar: string }
 export const requesterOf = (track: Track | UnresolvedTrack | null | undefined) => (track?.requester ?? null) as Requester | null;
 
 // Source names → readable labels for the UI.
+// A short, user-safe description of an error from the music library or node.
+export function musicError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return message.slice(0, 200) || "unknown error";
+}
+
 export const SOURCE_LABELS: Record<string, string> = {
     youtube: "YouTube", youtubemusic: "YouTube Music", soundcloud: "SoundCloud", spotify: "Spotify",
     deezer: "Deezer", applemusic: "Apple Music", bandcamp: "Bandcamp", twitch: "Twitch", http: "Link"

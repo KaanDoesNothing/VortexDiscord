@@ -67,7 +67,9 @@ function createManager() {
                 // Leaving after the queue ends is handled per server below (settings.music.leaveAfterQueueEndSeconds).
                 onEmptyQueue: { destroyAfterMs: -1, autoPlayFunction: autoplay }
             },
-            queueOptions: { maxPreviousTracks: 25 }
+            queueOptions: { maxPreviousTracks: 25 },
+            // MUSIC_DEBUG=true in .env logs every step (voice handshake, node messages) for troubleshooting.
+            advancedOptions: { enableDebugEvents: Bun.env.MUSIC_DEBUG === "true" }
         });
     } catch (error) {
         console.error("Music is disabled: invalid NodeLink settings.", error);
@@ -109,6 +111,11 @@ if (music) {
         .on("connect", (node) => container.logger.info(`Music node "${node.id}" connected (${node.nodeType}).`))
         .on("disconnect", (node, reason) => container.logger.warn(`Music node "${node.id}" disconnected: ${reason?.reason ?? "unknown"}`))
         .on("error", (node, error) => container.logger.error(`Music node "${node.id}" error:`, error));
+
+    if (Bun.env.MUSIC_DEBUG === "true") {
+        music.on("debug", (event, data) => container.logger.info(`[music:${event}] ${data.message}`));
+        music.on("playerSocketClosed", (player, payload) => container.logger.warn(`[music] voice socket closed in ${player.guildId}: ${payload.code} ${payload.reason}`));
+    }
 
     music.on("trackStart", async (player, track) => {
         clearIdleTimer(player.guildId);

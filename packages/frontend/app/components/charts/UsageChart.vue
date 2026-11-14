@@ -32,8 +32,8 @@
 
         <table class="sr-only">
             <caption>Commands used per day</caption>
-            <tr><th>Day</th><th>Commands</th></tr>
-            <tr v-for="d in data" :key="d.day"><td>{{ d.day }}</td><td>{{ d.uses }}</td></tr>
+            <thead><tr><th>Day</th><th>Commands</th></tr></thead>
+            <tbody><tr v-for="d in data" :key="d.day"><td>{{ d.day }}</td><td>{{ d.uses }}</td></tr></tbody>
         </table>
     </div>
 </template>
