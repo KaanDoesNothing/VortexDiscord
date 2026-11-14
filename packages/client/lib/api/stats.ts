@@ -3,6 +3,7 @@ import { Status, version as djsVersion } from "discord.js";
 import { count, desc, gte, sql } from "drizzle-orm";
 import os from "node:os";
 import { db, tables } from "../database";
+import { musicNodeStatus } from "../music/manager";
 
 // Bot-wide statistics for the public Stats page and the owner panel. Cached for 30 seconds.
 
@@ -81,6 +82,8 @@ async function compute() {
         shards,
         usage: { total: usage?.total ?? 0, last24h: usage?.last24h ?? 0, hourly, topCommands },
         economy: { users: economy?.users ?? 0, coinsInCirculation: economy?.coins ?? 0 },
+        // NodeLink node health and how many servers are listening right now.
+        music: musicNodeStatus(),
         leveling: { members: leveling?.members ?? 0, messagesCounted: leveling?.messages ?? 0 },
         system: {
             memoryMb: Math.round(memory.rss / 1024 / 1024),

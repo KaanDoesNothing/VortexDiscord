@@ -25,22 +25,28 @@ await client.stores.load();
 
 let problems = 0;
 const ours = <T extends { location: { full: string } }>(pieces: Iterable<T>) => [...pieces].filter((p) => p.location.full.startsWith(root));
+// Counts exported classes, and how many of them can switch themselves off (enabled: Boolean(...)),
+// e.g. music listeners when no NodeLink server is configured.
 const countExports = async (dir: string) => {
-    let classes = 0;
+    let classes = 0, optional = 0;
     for await (const file of new Glob(`${dir}/**/*.ts`).scan(root)) {
-        classes += ((await Bun.file(join(root, file)).text()).match(/^export (abstract )?class /gm) ?? []).length;
+        const text = await Bun.file(join(root, file)).text();
+        classes += (text.match(/^export (abstract )?class /gm) ?? []).length;
+        optional += (text.match(/enabled: Boolean\(/g) ?? []).length;
     }
-    return classes;
+    return { classes, optional };
 };
 
 // Each exported class should become exactly one loaded piece; fewer means a name clash.
 for (const name of ["commands", "listeners", "preconditions", "routes", "interaction-handlers"] as const) {
     const store = container.stores.get(name) as unknown as Map<string, { location: { full: string } }>;
     const loaded = ours(store.values()).length;
-    const exported = await countExports(name);
-    const ok = loaded === exported;
+    const { classes, optional } = await countExports(name);
+    // Optional pieces may be switched off; anything else missing means a name clash or load error.
+    const ok = loaded <= classes && loaded >= classes - optional;
     if (!ok) problems++;
-    console.log(`${ok ? "✓" : "✗"} ${name.padEnd(14)} ${loaded}/${exported} loaded`);
+    const off = classes - loaded;
+    console.log(`${ok ? "✓" : "✗"} ${name.padEnd(14)} ${loaded}/${classes} loaded${ok && off ? ` (${off} switched off: feature not configured)` : ""}`);
 }
 
 // Every command's slash definition must build (discord.js validates names, lengths and option order).

@@ -60,7 +60,16 @@
                 </UiCard>
             </div>
 
-            <div class="grid gap-6 md:grid-cols-3">
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <UiCard v-if="stats.music?.configured" title="Music">
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex justify-between"><dt class="text-zinc-400">Listening now</dt><dd class="tabular-nums">{{ stats.music.playing.toLocaleString() }} server{{ stats.music.playing === 1 ? "" : "s" }}</dd></div>
+                        <div v-for="n in stats.music.nodes" :key="n.id" class="flex justify-between">
+                            <dt class="text-zinc-400">{{ n.type }} node</dt>
+                            <dd class="inline-flex items-center gap-1.5"><span class="h-2 w-2 rounded-full" :class="n.connected ? 'bg-emerald-400' : 'bg-red-400'" />{{ n.connected ? "Online" : "Offline" }}</dd>
+                        </div>
+                    </dl>
+                </UiCard>
                 <UiCard title="Economy">
                     <dl class="space-y-2 text-sm">
                         <div class="flex justify-between"><dt class="text-zinc-400">Players</dt><dd class="tabular-nums">{{ stats.economy.users.toLocaleString() }}</dd></div>

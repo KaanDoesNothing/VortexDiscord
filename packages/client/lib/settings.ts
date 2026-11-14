@@ -264,6 +264,28 @@ const SCHEMA = {
         // Display name only; balances are shared across servers.
         currencyName: f.text("Coins", 24),
         currencyEmoji: f.text("🪙", 64, true)
+    },
+
+    // Music (needs a NodeLink/Lavalink node configured in .env).
+    music: {
+        enabled: f.bool(true),
+        // Members with one of these roles (or Manage Server) can control anyone's music.
+        // Without DJ roles, everyone can. Someone alone with the bot can always control it.
+        djRoleIds: f.ids(10),
+        defaultVolume: f.int(80, 1, 150),
+        maxVolume: f.int(150, 10, 200),
+        // Most tracks one person can have queued at once (0 = no limit).
+        maxQueuePerUser: f.int(0, 0, 1000),
+        maxQueueSize: f.int(500, 1, 2000),
+        // Post a "Now playing" card with buttons when a song starts.
+        announceNowPlaying: f.bool(true),
+        // Seconds to stay after the queue ends / everyone leaves (0 = leave right away).
+        leaveAfterQueueEndSeconds: f.int(120, 0, 3600),
+        leaveWhenAloneSeconds: f.int(60, 0, 3600),
+        // Stay in voice even when idle (DJs toggle with /247).
+        stay247: f.bool(false),
+        // Where plain searches go: YouTube, YouTube Music, SoundCloud, Spotify (needs NodeLink Spotify config).
+        searchSource: f.oneOf("ytsearch", ["ytsearch", "ytmsearch", "scsearch", "spsearch"] as const)
     }
 } satisfies Shape;
 

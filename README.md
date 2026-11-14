@@ -1,6 +1,6 @@
 # Vortex
 
-A Discord bot with 120+ commands (moderation, auto-mod, economy games, leveling, giveaways, tickets, lookups and more) and a web dashboard where server admins configure everything.
+A Discord bot with 140+ commands (music, moderation, auto-mod, economy games, leveling, giveaways, tickets, lookups and more) and a web dashboard where server admins configure everything.
 
 Finished with AI and updated because I don't have the motivation for this project, but people are still using it.
 
@@ -33,6 +33,15 @@ Finished with AI and updated because I don't have the motivation for this projec
 - Blocked words (whole words or phrases), Discord invites, other links (with an allow-list), mass mentions and message floods.
 - Punishment is a delete, a warn or a timeout, with role and channel exemptions.
 - Edited messages are checked too.
+
+**Music** (via [NodeLink](https://github.com/PerformanC/NodeLink), a Lavalink-compatible audio server)
+- Play songs and playlists from YouTube, YouTube Music, SoundCloud, Spotify, Deezer, Apple Music, Bandcamp, Twitch and more, or search and pick from the results.
+- A "Now playing" card with buttons: previous, pause, skip, stop, loop, shuffle and volume.
+- Commands: queue (with pages), skip to a song, previous, seek, loop (song or queue), shuffle, remove, move, clear, volume, **lyrics** and **autoplay** (keeps playing related songs).
+- **Audio effects**: bass boost, nightcore, vaporwave, 8D, karaoke, low-pass, tremolo, vibrato, EQ presets and a speed setting.
+- **DJ roles**: only DJs can skip other people's songs, stop, change volume and so on. People can always skip or remove their own songs, and someone alone with the bot can control it.
+- Queue limits per server and per member, a default and maximum volume, and auto-leave when the queue ends or everyone leaves. **24/7 mode** keeps the bot in voice.
+- The dashboard has a **live player**: now playing, a seek bar, controls, volume, and a queue you can reorder.
 
 **Economy and games**
 - Global wallet plus a **bank** that `/rob` can't touch.
@@ -129,6 +138,11 @@ bun install
 | `DISCORD_CLIENT_ID` | for dashboard | OAuth2 client ID (same app as the bot) |
 | `DISCORD_CLIENT_SECRET` | for dashboard | OAuth2 client secret |
 | `DISCORD_MEMBERS_INTENT` | | `true` to enable the Server Members features. Default `false` |
+| `NODELINK_HOST` | for music | NodeLink (or Lavalink v4) server address. Empty = music off |
+| `NODELINK_PORT` | | Default `3000` (NodeLink's default) |
+| `NODELINK_PASSWORD` | | The server password. Default `youshallnotpass` (NodeLink's default) |
+| `NODELINK_SECURE` | | `true` if the server uses https/wss |
+| `NODELINK_TYPE` | | `nodelink` (default) or `lavalink` |
 | `OWNER_IDS` | | Extra bot-owner user IDs, comma-separated. The application's owner (or its team) is always an owner |
 
 > Without `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`, the bot and the public pages still work; the dashboard just can't log anyone in.
@@ -144,7 +158,30 @@ Welcome and goodbye messages, auto-roles, welcome cards, the joins/leaves and ro
 
 Do step 1 before step 2. If the bot asks for the intent without it being enabled in the portal, Discord refuses the login. Bots in 100 or more servers also need Discord's approval for this intent.
 
-### 6. Run it
+### 6. (Optional) Music with NodeLink
+
+Music needs a separate audio server. [NodeLink](https://github.com/PerformanC/NodeLink) is a Lavalink v4-compatible server. A standard [Lavalink](https://lavalink.dev) v4 server also works; set `NODELINK_TYPE=lavalink`.
+
+```bash
+git clone https://github.com/PerformanC/NodeLink.git && cd NodeLink
+npm install                       # or: bun install
+cp config.default.ts config.ts    # set server.password (and Spotify/Deezer keys if you want those sources)
+npm run start                     # or: bun run start:bun   (needs Node >= 22.22 or Bun)
+```
+
+Or with Docker: `docker run -d -p 3000:3000 ghcr.io/performanc/nodelink:latest`.
+
+Then set these in `packages/client/.env` and restart the bot:
+
+```
+NODELINK_HOST=127.0.0.1
+NODELINK_PORT=3000
+NODELINK_PASSWORD=the-password-from-config.ts
+```
+
+Without `NODELINK_HOST`, music commands reply that music isn't set up, and everything else works normally.
+
+### 7. Run it
 
 Use two terminals:
 
@@ -289,6 +326,35 @@ Every command works as a slash command or with the server's prefix (default `->`
 | `/triggered [user]` | Slap a TRIGGERED banner on someone's avatar | Everyone |
 | `/trivia [difficulty]` | Answer a trivia question; get it right to win coins | Everyone |
 | `/wasted [user]` | Give someone's avatar the GTA-style WASTED screen | Everyone |
+
+</details>
+
+<details open>
+<summary><b>Music</b> (21)</summary>
+
+| Command | What it does | Permission |
+|---|---|---|
+| `/247` | Stay in voice 24/7, even when idle or alone (Manage Server) | Manage Server |
+| `/autoplay` | Keep playing related songs when the queue runs out | Everyone |
+| `/clear [mine]` | Clear the upcoming songs (the current song keeps playing) | Everyone |
+| `/filter <effect> [speed]` | Add an audio effect: bass boost, nightcore, 8D, karaoke and more | Everyone |
+| `/loop [mode]` | Loop the current song or the whole queue | Everyone |
+| `/lyrics` | Show the lyrics of the current song | Everyone |
+| `/move <from> <to>` | Move a song to a different place in the queue | Everyone |
+| `/nowplaying` | Show the current song with playback controls | Everyone |
+| `/pause` | Pause the music | Everyone |
+| `/play <query> [source] [next]` | Play a song or playlist from a link or a search | Everyone |
+| `/previous` | Go back and play the previous song again | Everyone |
+| `/queue [page]` | See what's playing and what's coming up | Everyone |
+| `/remove <position>` | Remove a song from the queue | Everyone |
+| `/resume` | Resume paused music | Everyone |
+| `/search <query> [source]` | Search for songs and pick which ones to queue | Everyone |
+| `/seek <time>` | Jump to a time in the current song, e.g. 1:30, or +30 / -10 seconds | Everyone |
+| `/shuffle` | Shuffle the upcoming songs | Everyone |
+| `/skip` | Skip the current song | Everyone |
+| `/skipto <position>` | Jump to a song in the queue, skipping the ones before it | Everyone |
+| `/stop` | Stop the music, clear the queue and leave voice | Everyone |
+| `/volume [level]` | Show or change the music volume | Everyone |
 
 </details>
 
@@ -446,6 +512,7 @@ Anyone with **Manage Server** (or the owner) can manage a server at `/dashboard`
 | | **Starboard** | Channel, emoji, reactions needed |
 | | **Giveaways** | Start giveaways; end or reroll them |
 | | **Birthdays** | Announcement channel and message |
+| | **Music** | Live player (seek, pause, skip, loop, shuffle, volume, autoplay, reorder or remove queue songs) and settings: DJ roles, volumes, queue limits, auto-leave, 24/7, search source |
 | | **Economy** | Currency name and emoji |
 | Utility | **Tickets** | Staff roles, category, transcripts, welcome message; recent tickets |
 | | **Suggestions** | Channel; approve, deny or mark implemented |
@@ -491,7 +558,7 @@ packages/
     index.ts                      Entry point: intents, prefix, API/OAuth setup
     commands/<category>/          One file per command (category = folder name)
     listeners/                    Discord events: leveling, auto-mod, logs, welcome, starboard, custom commands, error replies
-    interaction-handlers/         Buttons that must keep working after restarts (role panels, giveaways, polls, tickets)
+    interaction-handlers/         Buttons that must keep working after restarts (role panels, giveaways, polls, tickets, music)
     preconditions/                Checks before every command (blacklist, disabled, channels, per-command rules, cooldowns)
     routes/                       API for the dashboard; the file path is the URL
     lib/
@@ -500,6 +567,7 @@ packages/
       database/                   Drizzle schema (source of truth), queries and caches
       api/                        Route helpers: auth/permission checks, validation, stats
       structures/                 Base classes: VortexCommand (slash + prefix), RoleplayCommand, embed
+      music/                      NodeLink connection, playback actions, checks (DJ, voice), now-playing card
       automod.ts, modlog.ts, engagement.ts, utility.ts, economy.ts, games.ts, images.ts, owner.ts, calc.ts, http.ts
     drizzle/                      Generated SQL migrations (applied automatically on start)
     scripts/                      migrate.ts, check-pieces.ts
@@ -590,4 +658,8 @@ Edit [lib/database/schema.ts](packages/client/lib/database/schema.ts), run `bun 
 | Welcome messages, auto-roles or the growth chart do nothing | See [step 5](#5-optional-server-members-features). For roles, the bot's role must be above the roles it gives. |
 | A role panel button says it can't give a role | Move the bot's role above that role in Server Settings → Roles. |
 | A lookup command says the service didn't respond | The free public API is down or rate-limiting; try again later. |
+| Music: "isn't set up" | Set `NODELINK_HOST` (and the password) in `.env` and restart the bot. |
+| Music: "the music server is offline" | NodeLink isn't running or isn't reachable at `NODELINK_HOST:NODELINK_PORT`, or the password is wrong. Check the bot's log for "Music node" lines. |
+| Music joins but stays silent | Make sure the bot can **Connect** and **Speak** in that voice channel, and that NodeLink can reach YouTube and other sources from its machine. |
+| Spotify / Deezer links don't play | Add those services' credentials in NodeLink's `config.ts`. |
 | A command is missing from `/help` or the website | Run `bun run check`: it shows files that failed to load or names that clash. |

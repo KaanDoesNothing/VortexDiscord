@@ -39,6 +39,19 @@ export interface GuildSettings {
     tickets: { enabled: boolean; categoryId: string | null; staffRoleIds: string[]; openMessage: string; maxOpenPerUser: number; logChannelId: string | null };
     suggestions: { enabled: boolean; channelId: string | null };
     economy: { currencyName: string; currencyEmoji: string };
+    music: {
+        enabled: boolean;
+        djRoleIds: string[];
+        defaultVolume: number;
+        maxVolume: number;
+        maxQueuePerUser: number;
+        maxQueueSize: number;
+        announceNowPlaying: boolean;
+        leaveAfterQueueEndSeconds: number;
+        leaveWhenAloneSeconds: number;
+        stay247: boolean;
+        searchSource: "ytsearch" | "ytmsearch" | "scsearch" | "spsearch";
+    };
 }
 
 export interface GuildConfig {
@@ -149,6 +162,48 @@ export interface BotStats {
     shards: { id: number; status: string; ping: number; guilds: number; users: number }[];
     usage: { total: number; last24h: number; hourly: { hour: string; uses: number }[]; topCommands: { command: string; uses: number }[] };
     economy: { users: number; coinsInCirculation: number };
+    music: MusicNodeStatus;
     leveling: { members: number; messagesCounted: number };
     system: { memoryMb: number; heapMb: number; cpuCount: number; loadAverage: number; platform: string; runtime: string; library: string };
 }
+
+export interface MusicNodeStatus {
+    configured: boolean;
+    players: number;
+    playing: number;
+    nodes: { id: string; type: string; connected: boolean; players: number; playingPlayers: number; uptimeMs: number; memoryMb: number; cpuLoad: number }[];
+}
+
+export interface MusicTrack {
+    index?: number;
+    title: string;
+    author: string;
+    uri: string | null;
+    artworkUrl: string | null;
+    durationMs: number;
+    isStream: boolean;
+    source: string;
+    requester: { id: string; username: string; avatar: string } | null;
+}
+
+// GET /guilds/:guild/music
+export type MusicState =
+    | { configured: boolean; nodeOnline: boolean; active: false }
+    | {
+        configured: true;
+        nodeOnline: boolean;
+        active: true;
+        voiceChannelId: string | null;
+        voiceChannelName: string | null;
+        paused: boolean;
+        playing: boolean;
+        volume: number;
+        repeatMode: "off" | "track" | "queue";
+        autoplay: boolean;
+        positionMs: number;
+        current: MusicTrack | null;
+        queue: MusicTrack[];
+        queueLength: number;
+        queueDurationMs: number;
+        previousCount: number;
+    };

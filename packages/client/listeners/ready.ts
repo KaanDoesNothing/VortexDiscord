@@ -3,6 +3,7 @@ import type { Client } from "discord.js";
 import { ensureBirthdaySweep } from "../lib/engagement";
 import { applyPresence, isBlacklisted, loadBlacklist, loadDisabledCommands, loadOwners, loadPresence } from "../lib/owner";
 import { startScheduler } from "../lib/scheduler";
+import { initMusic } from "../lib/music/manager";
 
 // Make sure every scheduled-task handler is registered before the scheduler starts.
 import "../lib/modlog";
@@ -26,6 +27,8 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
         }
 
         startScheduler();
+        // Connect to the music node (NodeLink) now that the bot knows its own user ID.
+        await initMusic().catch((error) => logger.error("Couldn't start music:", error));
         await ensureBirthdaySweep().catch((error) => logger.warn("Couldn't schedule the birthday sweep:", error));
 
         logger.info(`Logged in as ${client.user.tag}: ${client.guilds.cache.size} servers, ${stores.get("commands").size} commands, ${client.ws.shards.size} shard(s).`);

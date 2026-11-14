@@ -18,6 +18,11 @@
             </span>
             <span class="rounded-full border border-zinc-800 px-3 py-1 text-zinc-400">Status: {{ data.presence.type }} "{{ data.presence.text }}"</span>
             <span class="rounded-full border border-zinc-800 px-3 py-1 text-zinc-400">{{ data.owners.length }} owner(s)</span>
+            <!-- Music node health (NodeLink). -->
+            <span v-if="!data.stats.music?.configured" class="rounded-full border border-zinc-800 px-3 py-1 text-zinc-500">Music: not configured</span>
+            <span v-for="n in data.stats.music?.nodes ?? []" v-else :key="n.id" class="rounded-full border border-zinc-800 px-3 py-1" :class="n.connected ? 'text-emerald-300' : 'text-red-300'">
+                Music node {{ n.connected ? "online" : "OFFLINE" }} · {{ data.stats.music.playing }} playing · {{ n.memoryMb }} MB
+            </span>
         </div>
 
         <UiCard title="Commands used" description="Last 24 hours, per hour">

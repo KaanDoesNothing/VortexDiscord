@@ -85,6 +85,7 @@ const nav = [
         { to: "/starboard", label: "Starboard" },
         { to: "/giveaways", label: "Giveaways" },
         { to: "/birthdays", label: "Birthdays" },
+        { to: "/music", label: "Music" },
         { to: "/economy", label: "Economy" }
     ] },
     { title: "Utility", items: [
