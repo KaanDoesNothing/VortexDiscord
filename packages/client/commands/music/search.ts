@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { ActionRowBuilder, ComponentType, SlashCommandBuilder, StringSelectMenuBuilder, type GuildMember } from "discord.js";
+import { ActionRowBuilder, ComponentType, SlashCommandBuilder, StringSelectMenuBuilder, type GuildMember, MessageFlags } from "discord.js";
 import type { SearchPlatform } from "lavalink-client";
 import { MusicCommand } from "../../lib/music/command";
 import { addTracks, getOrCreatePlayer, startIfIdle } from "../../lib/music/enqueue";
@@ -33,7 +33,7 @@ export class SearchCommand extends MusicCommand {
             return null;
         });
         const tracks = result?.tracks.slice(0, 10) ?? [];
-        if (!tracks.length) return ctx.reply({ content: `No results for **${query.slice(0, 100)}**.`, ephemeral: true });
+        if (!tracks.length) return ctx.reply({ content: `No results for **${query.slice(0, 100)}**.`, flags: MessageFlags.Ephemeral });
 
         const embed = new VortexEmbed()
             .setTitle(`🔎 Results for "${query.slice(0, 80)}"`)

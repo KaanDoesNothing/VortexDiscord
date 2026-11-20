@@ -11,7 +11,8 @@
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
     "check": "bun scripts/check-pieces.ts",
-    "check:music": "bun scripts/check-music.ts"
+    "check:music": "bun scripts/check-music.ts",
+    "test": "bun test scripts/logic.test.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

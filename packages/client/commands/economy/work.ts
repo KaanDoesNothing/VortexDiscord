@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
-import { DBManager, Economy } from "../../lib/database";
-import { ECONOMY, getCurrency, pick, randomInt } from "../../lib/economy";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
+import { economyFor, pick, randomInt } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
 // Random shift descriptions; {pay} is replaced with the amount earned.
@@ -27,15 +26,16 @@ export class WorkCommand extends VortexCommand {
         .setDescription("Work a shift for some coins (once an hour)");
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const { min, max, cooldownMs } = ECONOMY.work;
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
+        const { min, max, cooldownMinutes } = eco.config.work;
+        const cooldownMs = cooldownMinutes * 60_000;
 
-        const claim = await Economy.claimCooldown(ctx.user.id, "work", cooldownMs);
-        if (!claim.ok) return ctx.reply({ content: `😮‍💨 You're tired. You can work again ${time(claim.readyAt, "R")}.`, ephemeral: true });
+        const claim = await eco.claimCooldown(ctx.user.id, "work", cooldownMs);
+        if (!claim.ok) return ctx.reply({ content: `😮‍💨 You're tired. You can work again ${time(claim.readyAt, "R")}.`, flags: MessageFlags.Ephemeral });
 
         const pay = randomInt(min, max);
-        await DBManager.adjustBalance(ctx.user.id, pay);
+        await eco.adjust(ctx.user.id, pay);
 
-        return ctx.reply({ content: `💼 ${pick(JOBS).replace("{pay}", currency.format(pay))}` });
+        return ctx.reply({ content: `💼 ${pick(JOBS).replace("{pay}", eco.format(pay))}` });
     }
 }

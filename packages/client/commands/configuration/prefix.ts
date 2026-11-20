@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { DBManager } from "../../lib/database";
 import { VortexCommand } from "../../lib/structures/command";
 
@@ -20,7 +20,7 @@ export class PrefixCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const prefix = ctx.options.getString("prefix", true).trim();
-        if (!prefix || prefix.length > 10) return ctx.reply({ content: "The prefix must be 1 to 10 characters.", ephemeral: true });
+        if (!prefix || prefix.length > 10) return ctx.reply({ content: "The prefix must be 1 to 10 characters.", flags: MessageFlags.Ephemeral });
 
         await DBManager.setPrefix(ctx.guild!.id, prefix);
 

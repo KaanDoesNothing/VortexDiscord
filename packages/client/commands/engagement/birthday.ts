@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { Engagement } from "../../lib/database";
 import { VortexCommand } from "../../lib/structures/command";
 
@@ -28,19 +28,19 @@ export class BirthdayCommand extends VortexCommand {
             case "set": {
                 const month = ctx.options.getInteger("month", true);
                 const day = ctx.options.getInteger("day", true);
-                if (day > DAYS_IN_MONTH[month - 1]!) return ctx.reply({ content: `${MONTHS[month - 1]} doesn't have ${day} days.`, ephemeral: true });
+                if (day > DAYS_IN_MONTH[month - 1]!) return ctx.reply({ content: `${MONTHS[month - 1]} doesn't have ${day} days.`, flags: MessageFlags.Ephemeral });
 
                 await Engagement.setBirthday(ctx.user.id, month, day);
-                return ctx.reply({ content: `🎂 Saved! Your birthday is **${MONTHS[month - 1]} ${day}**.`, ephemeral: true });
+                return ctx.reply({ content: `🎂 Saved! Your birthday is **${MONTHS[month - 1]} ${day}**.`, flags: MessageFlags.Ephemeral });
             }
             case "remove": {
                 await Engagement.clearBirthday(ctx.user.id);
-                return ctx.reply({ content: "Your birthday has been removed.", ephemeral: true });
+                return ctx.reply({ content: "Your birthday has been removed.", flags: MessageFlags.Ephemeral });
             }
             case "view": {
                 const user = ctx.options.getUser("user") ?? ctx.user;
                 const b = await Engagement.getBirthday(user.id);
-                if (!b) return ctx.reply({ content: user.id === ctx.user.id ? "You haven't set your birthday. Use `/birthday set`." : `${user.displayName} hasn't set their birthday.`, ephemeral: true });
+                if (!b) return ctx.reply({ content: user.id === ctx.user.id ? "You haven't set your birthday. Use `/birthday set`." : `${user.displayName} hasn't set their birthday.`, flags: MessageFlags.Ephemeral });
                 return ctx.reply({ content: `🎂 ${user.id === ctx.user.id ? "Your" : `${user.displayName}'s`} birthday is **${MONTHS[b.month - 1]} ${b.day}**.` });
             }
         }

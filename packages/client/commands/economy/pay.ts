@@ -1,7 +1,7 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { DBManager } from "../../lib/database";
-import { getCurrency } from "../../lib/economy";
+import { economyFor } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /pay <member> <amount>: give coins from your wallet to someone. Atomic (see DBManager.transfer).
@@ -19,14 +19,14 @@ export class PayCommand extends VortexCommand {
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const target = ctx.options.getUser("member", true);
         const amount = ctx.options.getInteger("amount", true);
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
 
-        if (target.id === ctx.user.id) return ctx.reply({ content: "Nice try.", ephemeral: true });
-        if (target.bot) return ctx.reply({ content: "Bots can't receive coins.", ephemeral: true });
+        if (target.id === ctx.user.id) return ctx.reply({ content: "Nice try.", flags: MessageFlags.Ephemeral });
+        if (target.bot) return ctx.reply({ content: "Bots can't receive coins.", flags: MessageFlags.Ephemeral });
 
-        const paid = await DBManager.transfer(ctx.user.id, target.id, amount);
-        if (!paid) return ctx.reply({ content: `You don't have ${currency.format(amount)} in your wallet.`, ephemeral: true });
+        const paid = await eco.transfer(ctx.user.id, target.id, amount);
+        if (!paid) return ctx.reply({ content: `You don't have ${eco.format(amount)} in your wallet.`, flags: MessageFlags.Ephemeral });
 
-        return ctx.reply({ content: `💸 You sent ${currency.format(amount)} to ${target}.`, allowedMentions: { users: [target.id] } });
+        return ctx.reply({ content: `💸 You sent ${eco.format(amount)} to ${target}.`, allowedMentions: { users: [target.id] } });
     }
 }

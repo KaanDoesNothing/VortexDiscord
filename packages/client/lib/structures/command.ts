@@ -1,6 +1,7 @@
 import { Args, Command } from "@sapphire/framework";
 import {
     ApplicationCommandOptionType,
+    MessageFlags,
     type APIApplicationCommandBasicOption,
     type APIApplicationCommandOption,
     type APIApplicationCommandSubcommandOption,
@@ -9,6 +10,8 @@ import {
     type SlashCommandOptionsOnlyBuilder,
     type SlashCommandSubcommandsOnlyBuilder
 } from "discord.js";
+import { DBManager } from "../database";
+import { runInGuild } from "./context";
 import { VortexEmbed } from "./embed";
 
 // Base class for every command.
@@ -20,6 +23,34 @@ import { VortexEmbed } from "./embed";
 export class VortexCommand extends Command {
     public constructor(context: Command.LoaderContext, options: Command.Options) {
         super(context, { ...options });
+
+        // Every run (slash or prefix, which goes through chatInputRun too) happens inside the
+        // server's context, so embeds pick up its branding, and its reply rules are applied.
+        const run = this.chatInputRun;
+        if (run) {
+            this.chatInputRun = ((interaction: ChatInputCommandInteraction, ctx: Parameters<NonNullable<Command["chatInputRun"]>>[1]) =>
+                runInGuild(interaction.guildId, async () => {
+                    await this.applyReplyRules(interaction);
+                    return run.call(this, interaction, ctx);
+                })) as typeof run;
+        }
+    }
+
+    // Dashboard → General → "Private replies": commands in these categories answer privately.
+    // Only possible for slash commands; prefix replies are normal messages.
+    private async applyReplyRules(interaction: ChatInputCommandInteraction) {
+        if (!interaction.guildId || Reflect.get(interaction, "isPollyFilled")) return;
+        const { settings } = await DBManager.getGuildConfig(interaction.guildId);
+        if (!settings.replies.privateCategories.includes(this.category ?? "")) return;
+
+        const privately = (input: any) => {
+            if (typeof input === "string") return { content: input, flags: MessageFlags.Ephemeral };
+            return { ...input, flags: (typeof input?.flags === "number" ? input.flags : 0) | MessageFlags.Ephemeral };
+        };
+        for (const method of ["reply", "deferReply", "followUp"] as const) {
+            const original = (interaction[method] as Function).bind(interaction);
+            Reflect.set(interaction, method, (input?: any) => original(privately(input ?? {})));
+        }
     }
 
     // Reserved for bot-staff-only commands (compared against users.permission).

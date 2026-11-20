@@ -10,9 +10,7 @@
             <UiToggle v-model="draft.enabled" label="Announce birthdays" />
             <template v-if="draft.enabled">
                 <UiField label="Channel"><UiChannelSelect v-model="draft.channelId" :channels="overview!.channels" placeholder="Pick a channel…" /></UiField>
-                <UiField label="Message">
-                    <UiMessageEditor v-model="draft.message" :placeholders="overview!.placeholders" :only="['{user}', '{user.name}', '{user.mention}', '{server}']" />
-                </UiField>
+                <UiRichMessageEditor v-model="draft.message" :placeholders="overview!.placeholders" :only="['{user}', '{user.name}', '{user.mention}', '{user.avatar}', '{server}', '{date}', '{random:a|b|c}']" />
             </template>
         </UiCard>
 

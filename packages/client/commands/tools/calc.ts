@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { CalcError, evaluate, formatResult } from "../../lib/calc";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -27,7 +27,7 @@ export class CalcCommand extends VortexCommand {
             return ctx.reply({ embeds: [embed] });
         } catch (error) {
             const reason = error instanceof CalcError ? error.message : "Couldn't calculate that";
-            return ctx.reply({ content: `❌ ${reason}. Supported: + - * / % ^, parentheses, pi, e, sqrt, abs, round, sin, cos, tan, log, ln, min, max…`, ephemeral: true });
+            return ctx.reply({ content: `❌ ${reason}. Supported: + - * / % ^, parentheses, pi, e, sqrt, abs, round, sin, cos, tan, log, ln, min, max…`, flags: MessageFlags.Ephemeral });
         }
     }
 }

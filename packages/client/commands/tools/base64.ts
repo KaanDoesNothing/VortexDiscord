@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /base64 encode|decode <text>
@@ -16,13 +16,13 @@ export class Base64Command extends VortexCommand {
         const text = ctx.options.getString("text", true);
 
         if (ctx.options.getSubcommand() === "encode") {
-            return ctx.reply({ content: `\`\`\`\n${Buffer.from(text, "utf8").toString("base64")}\n\`\`\``, ephemeral: true });
+            return ctx.reply({ content: `\`\`\`\n${Buffer.from(text, "utf8").toString("base64")}\n\`\`\``, flags: MessageFlags.Ephemeral });
         }
 
         const clean = text.trim().replace(/\s/g, "");
-        if (!/^[A-Za-z0-9+/_-]*={0,2}$/.test(clean)) return ctx.reply({ content: "That isn't valid Base64.", ephemeral: true });
+        if (!/^[A-Za-z0-9+/_-]*={0,2}$/.test(clean)) return ctx.reply({ content: "That isn't valid Base64.", flags: MessageFlags.Ephemeral });
 
         const decoded = Buffer.from(clean, "base64").toString("utf8");
-        return ctx.reply({ content: `\`\`\`\n${decoded.replace(/```/g, "ˋˋˋ").slice(0, 1900) || "(empty)"}\n\`\`\``, ephemeral: true });
+        return ctx.reply({ content: `\`\`\`\n${decoded.replace(/```/g, "ˋˋˋ").slice(0, 1900) || "(empty)"}\n\`\`\``, flags: MessageFlags.Ephemeral });
     }
 }

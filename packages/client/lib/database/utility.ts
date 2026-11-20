@@ -6,7 +6,7 @@ import { blacklist, botConfig, scheduledTasks, suggestions, tickets } from "./sc
 
 // ---------- Tickets ----------
 
-export async function openTicket(input: { guildId: string; channelId: string; ownerId: string; topic?: string | null }) {
+export async function openTicket(input: { guildId: string; channelId: string; ownerId: string; topic?: string | null; type?: string | null }) {
     const [row] = await db.insert(tickets).values(input).returning();
     return row!;
 }
@@ -18,6 +18,12 @@ export async function countOpenTickets(guildId: string, ownerId: string) {
 
 export async function getTicketByChannel(channelId: string) {
     const [row] = await db.select().from(tickets).where(and(eq(tickets.channelId, channelId), eq(tickets.closed, false)));
+    return row ?? null;
+}
+
+// Marks a staff member as handling the ticket (null = unclaim).
+export async function claimTicket(id: number, staffId: string | null) {
+    const [row] = await db.update(tickets).set({ claimedBy: staffId }).where(eq(tickets.id, id)).returning();
     return row ?? null;
 }
 

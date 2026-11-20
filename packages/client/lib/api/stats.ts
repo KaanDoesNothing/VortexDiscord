@@ -1,6 +1,6 @@
 import { container } from "@sapphire/framework";
 import { Status, version as djsVersion } from "discord.js";
-import { count, desc, gte, sql } from "drizzle-orm";
+import { count, desc, eq, gte, sql } from "drizzle-orm";
 import os from "node:os";
 import { db, tables } from "../database";
 import { musicNodeStatus } from "../music/manager";
@@ -34,7 +34,7 @@ async function compute() {
 
     const since24h = new Date(Date.now() - 86_400_000);
     const since30d = new Date(Date.now() - 30 * 86_400_000);
-    const { commandLogs, users, guildMembers } = tables;
+    const { commandLogs, wallets, guildMembers } = tables;
 
     const [[usage], topCommands, perHour, [economy], [leveling]] = await Promise.all([
         db.select({
@@ -48,7 +48,8 @@ async function compute() {
             hour: sql<string>`to_char(date_trunc('hour', ${commandLogs.createdAt} at time zone 'UTC'), 'YYYY-MM-DD"T"HH24')`,
             uses: count()
         }).from(commandLogs).where(gte(commandLogs.createdAt, since24h)).groupBy(sql`1`).orderBy(sql`1`),
-        db.select({ users: count(), coins: sql<number>`coalesce(sum(${users.balance} + ${users.bank}), 0)`.mapWith(Number) }).from(users),
+        // Coins in the shared (global) economy; servers running their own economy aren't counted.
+        db.select({ users: count(), coins: sql<number>`coalesce(sum(${wallets.balance} + ${wallets.bank}), 0)`.mapWith(Number) }).from(wallets).where(eq(wallets.scope, "global")),
         db.select({ members: count(), messages: sql<number>`coalesce(sum(${guildMembers.messages}), 0)`.mapWith(Number) }).from(guildMembers)
     ]);
 

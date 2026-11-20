@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, type GuildMember } from "discord.js";
+import { SlashCommandBuilder, type GuildMember, MessageFlags } from "discord.js";
 import * as Music from "../../lib/music/actions";
 import { MusicCommand } from "../../lib/music/command";
 import { requesterOf, trackLink } from "../../lib/music/format";
@@ -23,10 +23,10 @@ export class RemoveCommand extends MusicCommand {
 
         const index = ctx.options.getInteger("position", true) - 1;
         const track = player.queue.tracks[index];
-        if (!track) return ctx.reply({ content: `There are only ${player.queue.tracks.length} songs in the queue.`, ephemeral: true });
+        if (!track) return ctx.reply({ content: `There are only ${player.queue.tracks.length} songs in the queue.`, flags: MessageFlags.Ephemeral });
 
         if (requesterOf(track)?.id !== ctx.user.id && !isDj(ctx.member as GuildMember, settings, player)) {
-            return ctx.reply({ content: "You can only remove songs you added (DJs can remove any).", ephemeral: true });
+            return ctx.reply({ content: "You can only remove songs you added (DJs can remove any).", flags: MessageFlags.Ephemeral });
         }
 
         await Music.removeAt(player, index);

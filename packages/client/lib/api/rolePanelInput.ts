@@ -7,6 +7,8 @@ export interface RolePanelInput {
     title: string;
     description: string;
     mode: "toggle" | "single";
+    // buttons: one button per role. select: a dropdown menu.
+    style: "buttons" | "select";
     roles: { roleId: string; label: string; emoji?: string }[];
 }
 
@@ -25,6 +27,7 @@ export function parseRolePanel(body: Record<string, unknown>, guild: Guild): { i
     if (description.length > 2000) errors.push("Description can be at most 2000 characters");
 
     const mode = body.mode === "single" ? "single" : "toggle";
+    const style = body.style === "select" ? "select" : "buttons";
 
     const roles: RolePanelInput["roles"] = [];
     if (!Array.isArray(body.roles) || !body.roles.length || body.roles.length > 25) {
@@ -42,5 +45,5 @@ export function parseRolePanel(body: Record<string, unknown>, guild: Guild): { i
         if (new Set(roles.map((r) => r.roleId)).size !== roles.length) errors.push("Each role can only be on a panel once");
     }
 
-    return errors.length ? { errors } : { input: { channelId, title, description, mode, roles }, errors };
+    return errors.length ? { errors } : { input: { channelId, title, description, mode, style, roles }, errors };
 }

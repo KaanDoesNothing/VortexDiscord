@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
 import { apiErrorMessage, getJson } from "../../lib/http";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -16,7 +16,7 @@ export class NpmCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const name = ctx.options.getString("package", true).trim().toLowerCase();
-        if (!/^(@[\w.-]+\/)?[\w.-]+$/.test(name)) return ctx.reply({ content: "That isn't a valid npm package name.", ephemeral: true });
+        if (!/^(@[\w.-]+\/)?[\w.-]+$/.test(name)) return ctx.reply({ content: "That isn't a valid npm package name.", flags: MessageFlags.Ephemeral });
         await ctx.deferReply();
 
         try {

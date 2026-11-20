@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
 import { Utility } from "../../lib/database";
 import { formatDuration, parseDuration, schedule } from "../../lib/scheduler";
 import { VortexCommand } from "../../lib/structures/command";
@@ -28,10 +28,10 @@ export class RemindCommand extends VortexCommand {
         switch (ctx.options.getSubcommand()) {
             case "me": {
                 const ms = parseDuration(ctx.options.getString("in", true));
-                if (!ms || ms < 30_000 || ms > 365 * 86_400_000) return ctx.reply({ content: "Give a time like `10m`, `2h` or `3d` (30 seconds to 1 year).", ephemeral: true });
+                if (!ms || ms < 30_000 || ms > 365 * 86_400_000) return ctx.reply({ content: "Give a time like `10m`, `2h` or `3d` (30 seconds to 1 year).", flags: MessageFlags.Ephemeral });
 
                 const existing = await Utility.listUserReminders(ctx.user.id);
-                if (existing.length >= MAX_REMINDERS) return ctx.reply({ content: `You can have at most ${MAX_REMINDERS} reminders. Cancel some with \`/remind cancel\`.`, ephemeral: true });
+                if (existing.length >= MAX_REMINDERS) return ctx.reply({ content: `You can have at most ${MAX_REMINDERS} reminders. Cancel some with \`/remind cancel\`.`, flags: MessageFlags.Ephemeral });
 
                 const runAt = new Date(Date.now() + ms);
                 const id = await schedule({
@@ -42,19 +42,19 @@ export class RemindCommand extends VortexCommand {
                     createdBy: ctx.user.id
                 });
 
-                return ctx.reply({ content: `⏰ Got it! I'll remind you ${time(runAt, "R")} (in ${formatDuration(ms)}). Reminder #${id}.`, ephemeral: true });
+                return ctx.reply({ content: `⏰ Got it! I'll remind you ${time(runAt, "R")} (in ${formatDuration(ms)}). Reminder #${id}.`, flags: MessageFlags.Ephemeral });
             }
             case "list": {
                 const reminders = await Utility.listUserReminders(ctx.user.id);
                 const embed = new VortexEmbed().setTitle("⏰ Your reminders").setDescription(reminders.length
                     ? reminders.map((r) => `\`#${r.id}\` ${time(r.runAt, "R")}: ${String((r.payload as { message: string }).message).slice(0, 100)}`).join("\n")
                     : "No reminders. Set one with `/remind me`.");
-                return ctx.reply({ embeds: [embed], ephemeral: true });
+                return ctx.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             }
             case "cancel": {
                 const id = ctx.options.getInteger("id", true);
                 const removed = await Utility.deleteUserReminder(ctx.user.id, id);
-                return ctx.reply({ content: removed ? `Reminder #${id} cancelled.` : "You don't have a reminder with that ID.", ephemeral: true });
+                return ctx.reply({ content: removed ? `Reminder #${id} cancelled.` : "You don't have a reminder with that ID.", flags: MessageFlags.Ephemeral });
             }
         }
     }

@@ -14,5 +14,11 @@ export class MessageCommandSuccessListener extends Listener<typeof Events.Messag
             command: command.name,
             parameters
         });
+
+        // Dashboard → General → "Delete command messages": keeps channels tidy.
+        if (message.guildId) {
+            const { settings } = await DBManager.getGuildConfig(message.guildId);
+            if (settings.replies.deleteInvocation && message.deletable) await message.delete().catch(() => null);
+        }
     }
 }

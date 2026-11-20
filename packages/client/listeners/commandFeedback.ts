@@ -1,4 +1,5 @@
 import { Events, Listener, type ChatInputCommandDeniedPayload, type ChatInputCommandErrorPayload, type MessageCommandDeniedPayload, type MessageCommandErrorPayload, type UserError } from "@sapphire/framework";
+import { MessageFlags } from "discord.js";
 
 // Tells users why a command didn't run. Without these, a missing permission, a disabled
 // command or a crash just leaves the user with "The application did not respond".
@@ -17,7 +18,7 @@ export class ChatInputDeniedListener extends Listener<typeof Events.ChatInputCom
 
         const content = error.message;
         if (interaction.deferred || interaction.replied) return interaction.editReply({ content });
-        return interaction.reply({ content, ephemeral: true });
+        return interaction.reply({ content, flags: MessageFlags.Ephemeral });
     }
 }
 
@@ -43,7 +44,7 @@ export class ChatInputErrorListener extends Listener<typeof Events.ChatInputComm
 
         const reply = interaction.deferred || interaction.replied
             ? interaction.editReply({ content: ERROR_MESSAGE })
-            : interaction.reply({ content: ERROR_MESSAGE, ephemeral: true });
+            : interaction.reply({ content: ERROR_MESSAGE, flags: MessageFlags.Ephemeral });
         await reply.catch(() => null);
     }
 }

@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { EmojiDislike, EmojiLike } from "../../lib/constant";
 import { DBManager, Engagement } from "../../lib/database";
-import { getCurrency } from "../../lib/economy";
+import { economyFor } from "../../lib/economy";
+import { levelFromXp } from "../../lib/leveling";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -17,27 +18,30 @@ export class ProfileCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("member") ?? ctx.user;
-        if (user.bot) return ctx.reply({ content: "Bots don't have profiles.", ephemeral: true });
+        if (user.bot) return ctx.reply({ content: "Bots don't have profiles.", flags: MessageFlags.Ephemeral });
 
-        const [userData, memberData, birthday, currency] = await Promise.all([
+        const eco = await economyFor(ctx.guildId);
+        const [userData, wallet, memberData, birthday, config] = await Promise.all([
             DBManager.getUser(user.id),
+            eco.wallet(user.id),
             ctx.guildId ? DBManager.getGuildMember(ctx.guildId, user.id) : null,
             Engagement.getBirthday(user.id),
-            getCurrency(ctx.guildId)
+            ctx.guildId ? DBManager.getGuildConfig(ctx.guildId) : null
         ]);
+        const level = memberData ? levelFromXp(memberData.xp, config?.settings.leveling.difficulty) : null;
 
         const embed = new VortexEmbed()
             .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
             .setThumbnail(user.displayAvatarURL({ size: 512 }))
-            .addField("Wallet", currency.format(userData.balance), true)
-            .addField("Bank", currency.format(userData.bank), true)
-            .addField("Server level", memberData ? `${memberData.level} (${memberData.messages.toLocaleString()} messages)` : "—", true)
+            .addField("Wallet", eco.format(wallet.balance), true)
+            .addField("Bank", eco.format(wallet.bank), true)
+            .addField("Server level", memberData && level ? `${level} (${memberData.xp.toLocaleString("en-US")} XP)` : "—", true)
             .addField(`${EmojiLike} Likes`, userData.likes.toLocaleString(), true)
             .addField(`${EmojiDislike} Dislikes`, userData.dislikes.toLocaleString(), true)
             .addField("🎂 Birthday", birthday ? `${MONTHS[birthday.month - 1]} ${birthday.day}` : "Not set (`/birthday set`)", true)
             .setFooter({ text: `Bio: ${userData.bio}` });
 
-        if (userData.dailyStreak > 1) embed.addField("🔥 Daily streak", `${userData.dailyStreak} days`, true);
+        if (wallet.dailyStreak > 1) embed.addField("🔥 Daily streak", `${wallet.dailyStreak} days`, true);
 
         return ctx.reply({ embeds: [embed] });
     }

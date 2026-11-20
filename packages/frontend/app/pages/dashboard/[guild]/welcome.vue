@@ -1,4 +1,4 @@
-<!-- Welcome & goodbye messages and auto-roles for new members. -->
+<!-- Welcome & goodbye messages (text and/or embed), the welcome DM, and auto-roles for new members. -->
 <template>
     <div v-if="draft" class="space-y-6">
         <h1 class="text-2xl font-bold">Welcome &amp; roles</h1>
@@ -10,18 +10,20 @@
             You can still set everything up now.
         </div>
 
-        <UiCard v-for="kind in (['welcome', 'goodbye'] as const)" :key="kind" :title="kind === 'welcome' ? 'Welcome message' : 'Goodbye message'" :description="kind === 'welcome' ? 'Sent when someone joins.' : 'Sent when someone leaves.'">
+        <UiCard v-for="kind in (['welcome', 'goodbye'] as const)" :key="kind" :title="kind === 'welcome' ? 'Welcome message' : 'Goodbye message'" :description="kind === 'welcome' ? 'Posted when someone joins.' : 'Posted when someone leaves.'">
             <UiToggle v-model="draft[kind].enabled" :label="kind === 'welcome' ? 'Send welcome messages' : 'Send goodbye messages'" />
             <template v-if="draft[kind].enabled">
-                <UiField label="Channel">
+                <UiField label="Channel" :hint="kind === 'welcome' ? 'Leave empty to only send the DM below.' : undefined">
                     <UiChannelSelect v-model="draft[kind].channelId" :channels="overview!.channels" placeholder="Pick a channel…" />
-                    <p v-if="!draft[kind].channelId" class="mt-1 text-sm text-amber-300">Pick a channel, or nothing will be sent.</p>
                 </UiField>
-                <UiField label="Message">
-                    <UiMessageEditor v-model="draft[kind].message" :placeholders="overview!.placeholders" :only="['{user}', '{user.name}', '{user.mention}', '{user.id}', '{server}', '{memberCount}']" />
-                </UiField>
-                <UiToggle v-if="kind === 'welcome'" v-model="draft.welcome.image" label="Attach a welcome card" description="A generated image with their avatar, name and member number." />
+                <UiRichMessageEditor v-model="draft[kind].message" :placeholders="overview!.placeholders" :only="kind === 'welcome' ? memberTokens : goodbyeTokens" />
+                <UiToggle v-if="kind === 'welcome'" v-model="draft.welcome.image" label="Attach a welcome card" description="A generated image with their avatar, name and member number (shown inside the embed if there is one)." />
             </template>
+        </UiCard>
+
+        <UiCard v-if="draft.welcome.enabled" title="Welcome DM" description="Also send new members a private message, e.g. rules or how to get roles.">
+            <UiToggle v-model="draft.welcome.dm.enabled" label="DM new members" />
+            <UiRichMessageEditor v-if="draft.welcome.dm.enabled" v-model="draft.welcome.dm.message" :placeholders="overview!.placeholders" :only="memberTokens" />
         </UiCard>
 
         <UiCard title="Auto-roles" description="Given to every new member (not bots). Up to 10.">
@@ -35,6 +37,9 @@
 
 <script setup lang="ts">
 const { overview, config, save } = useGuildDashboard();
+
+const memberTokens = ["{user}", "{user.name}", "{user.mention}", "{user.id}", "{user.avatar}", "{user.createdAt}", "{server}", "{server.icon}", "{memberCount}", "{inviter}", "{inviter.invites}", "{date}", "{random:a|b|c}"];
+const goodbyeTokens = ["{user}", "{user.name}", "{user.id}", "{user.avatar}", "{user.joinedAt}", "{server}", "{memberCount}", "{random:a|b|c}"];
 
 const { draft, dirty, reset } = useDraft(() => config.value && {
     welcome: config.value.settings.welcome,

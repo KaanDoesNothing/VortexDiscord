@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
-import { auditReason, checkModerationTarget } from "../../lib/moderation";
-import { logModAction } from "../../lib/modlog";
+import { auditReason, checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget } from "../../lib/modlog";
 
 // /deafen <user> [reason]: server-deafens and mutes a member who is in a voice channel.
 export class DeafenCommand extends VortexCommand {
@@ -23,13 +24,14 @@ export class DeafenCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
-        const reason = ctx.options.getString("reason") ?? "None";
+        const member = await fetchMember(ctx.guild!, user.id);
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
         // Discord only allows (un)deafening someone who is connected to voice.
-        if (!member?.voice.channel) return ctx.reply({ content: `${user.tag} isn't in a voice channel.`, ephemeral: true });
+        if (!member?.voice.channel) return ctx.reply({ content: `${user.tag} isn't in a voice channel.`, flags: MessageFlags.Ephemeral });
 
         await member.voice.setDeaf(true, auditReason(ctx.user, reason));
         await member.voice.setMute(true, auditReason(ctx.user, reason));

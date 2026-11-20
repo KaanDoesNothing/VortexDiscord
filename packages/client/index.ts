@@ -3,6 +3,7 @@ import "@sapphire/plugin-api/register";
 import { LogLevel } from "@sapphire/framework";
 import { GatewayIntentBits, OAuth2Scopes, Partials, type Message } from "discord.js";
 import { DBManager, runMigrations } from "./lib/database";
+import { stopLeveling } from "./lib/leveling";
 import { VortexClient } from "./lib/structures/client";
 
 // Create or update the Postgres tables before anything touches them.
@@ -25,6 +26,10 @@ const client = new VortexClient({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessageReactions,
+        // Ban logs, invite tracking and emoji logs (not privileged).
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildInvites,
+        GatewayIntentBits.GuildExpressions,
         GatewayIntentBits.MessageContent,
         ...(MEMBERS_INTENT ? [GatewayIntentBits.GuildMembers] : [])
     ],
@@ -56,3 +61,15 @@ const client = new VortexClient({
 });
 
 await client.login(Bun.env.DISCORD_TOKEN);
+
+// On shutdown (Ctrl+C, pm2 restart), save XP and command logs that are still queued in memory.
+let stopping = false;
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    process.on(signal, async () => {
+        if (stopping) return;
+        stopping = true;
+        await Promise.allSettled([stopLeveling(), DBManager.flushCommandLogs()]);
+        await client.destroy();
+        process.exit(0);
+    });
+}

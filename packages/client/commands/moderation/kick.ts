@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
-import { auditReason, checkModerationTarget } from "../../lib/moderation";
-import { logModAction } from "../../lib/modlog";
+import { auditReason, checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget } from "../../lib/modlog";
 
 // /kick <user> [reason]
 export class KickCommand extends VortexCommand {
@@ -23,14 +24,16 @@ export class KickCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
-        const reason = ctx.options.getString("reason") ?? "None";
+        const member = await fetchMember(ctx.guild!, user.id);
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
-        if (!member) return ctx.reply({ content: `${user.tag} isn't in this server.`, ephemeral: true });
-        if (!member.kickable) return ctx.reply({ content: `I can't kick ${user.tag}: their role is above mine.`, ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
+        if (!member) return ctx.reply({ content: `${user.tag} isn't in this server.`, flags: MessageFlags.Ephemeral });
+        if (!member.kickable) return ctx.reply({ content: `I can't kick ${user.tag}: their role is above mine.`, flags: MessageFlags.Ephemeral });
 
+        await notifyTarget(ctx.guild!, { type: "kick", moderator: ctx.user, target: user, reason });
         await member.kick(auditReason(ctx.user, reason));
         await logModAction(ctx.guild!, { type: "kick", moderator: ctx.user, target: user, reason });
 

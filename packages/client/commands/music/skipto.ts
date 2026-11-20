@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { MusicCommand } from "../../lib/music/command";
 import { trackLink } from "../../lib/music/format";
 
@@ -21,7 +21,7 @@ export class SkipToCommand extends MusicCommand {
 
         const position = ctx.options.getInteger("position", true);
         const target = player.queue.tracks[position - 1];
-        if (!target) return ctx.reply({ content: `There are only ${player.queue.tracks.length} songs in the queue.`, ephemeral: true });
+        if (!target) return ctx.reply({ content: `There are only ${player.queue.tracks.length} songs in the queue.`, flags: MessageFlags.Ephemeral });
 
         await player.skip(position);
         return ctx.reply({ content: `⏭️ Jumped to ${trackLink(target)}.`, allowedMentions: { parse: [] } });

@@ -1,7 +1,8 @@
 import { HttpCodes, Route } from "@sapphire/plugin-api";
 import { ApiRoute } from "../../../lib/api/ApiRoute";
 import { requireOwner } from "../../../lib/api/auth";
-import { DBManager, Engagement } from "../../../lib/database";
+import { DBManager, Economy, Engagement } from "../../../lib/database";
+import { DEFAULT_SETTINGS } from "../../../lib/settings";
 import { isBlacklisted } from "../../../lib/owner";
 
 // GET /owner/users/:id: a user's Discord profile plus their bot data (economy, birthday, mutual servers).
@@ -15,7 +16,7 @@ export class OwnerUserRoute extends ApiRoute {
         const user = await this.container.client.users.fetch(id).catch(() => null);
         if (!user) return res.status(HttpCodes.NotFound).json({ error: "No Discord user with that ID" });
 
-        const [data, birthday] = await Promise.all([DBManager.getUser(id), Engagement.getBirthday(id)]);
+        const [data, wallet, birthday] = await Promise.all([DBManager.getUser(id), Economy.getWallet("global", id, DEFAULT_SETTINGS.economy.startingBalance), Engagement.getBirthday(id)]);
         const mutual = this.container.client.guilds.cache.filter((g) => g.members.cache.has(id)).map((g) => ({ id: g.id, name: g.name }));
 
         return res.json({
@@ -26,7 +27,8 @@ export class OwnerUserRoute extends ApiRoute {
             bot: user.bot,
             createdAt: user.createdAt.toISOString(),
             blacklisted: isBlacklisted(id),
-            data: { balance: data.balance, bank: data.bank, bio: data.bio, likes: data.likes, dislikes: data.dislikes, dailyStreak: data.dailyStreak },
+            // Global wallet (servers with their own economy keep separate balances).
+            data: { balance: wallet.balance, bank: wallet.bank, bio: data.bio, likes: data.likes, dislikes: data.dislikes, dailyStreak: wallet.dailyStreak },
             birthday,
             mutualServers: mutual.slice(0, 25)
         });

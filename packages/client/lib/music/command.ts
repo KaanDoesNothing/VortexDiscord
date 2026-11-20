@@ -3,6 +3,7 @@ import type { GuildMember } from "discord.js";
 import type { Player } from "lavalink-client";
 import { VortexCommand } from "../structures/command";
 import { checkDj, checkMusicAvailable, checkVoice, getActivePlayer, type MusicSettings } from "./guards";
+import { MessageFlags } from "discord.js";
 
 interface Requirements {
     // There must be a song playing/queued.
@@ -21,7 +22,7 @@ export abstract class MusicCommand extends VortexCommand {
 
     // Returns the player and settings, or null after replying with what's wrong.
     protected async prepare(ctx: Command.ChatInputCommandInteraction, req: Requirements = {}): Promise<{ player: Player; settings: MusicSettings; member: GuildMember } | null> {
-        const fail = (content: string) => ctx.reply({ content, ephemeral: true }).then(() => null);
+        const fail = (content: string) => ctx.reply({ content, flags: MessageFlags.Ephemeral }).then(() => null);
         const member = ctx.member as GuildMember;
 
         const available = await checkMusicAvailable(ctx.guildId!);

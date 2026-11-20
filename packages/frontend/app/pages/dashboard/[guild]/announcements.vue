@@ -9,7 +9,7 @@
         <UiCard title="New announcement">
             <UiMessageComposer v-model="draft" :channels="overview?.channels ?? []" />
             <div class="grid gap-4 sm:grid-cols-2">
-                <UiField label="Send at" hint="Your local time."><input v-model="runAt" type="datetime-local" class="input" /></UiField>
+                <UiField v-if="repeat !== -1" label="Send at" hint="Your local time."><input v-model="runAt" type="datetime-local" class="input" /></UiField>
                 <UiField label="Repeat">
                     <select v-model.number="repeat" class="input">
                         <option :value="0">Don't repeat</option>
@@ -17,8 +17,19 @@
                         <option :value="1440">Every day</option>
                         <option :value="10080">Every week</option>
                         <option :value="43200">Every 30 days</option>
+                        <option :value="-1">Custom schedule…</option>
                     </select>
                 </UiField>
+            </div>
+            <div v-if="repeat === -1" class="grid gap-4 sm:grid-cols-[1fr_auto]">
+                <UiField label="Schedule" hint="Cron format: minute hour day month weekday. e.g. 0 9 * * 1-5 = 9:00 on weekdays, 30 18 * * 5 = Fridays 18:30, 0 12 1 * * = the 1st of every month.">
+                    <div class="flex flex-wrap gap-2">
+                        <input v-model="cron" class="input flex-1 font-mono" placeholder="0 9 * * 1-5" />
+                        <button v-for="p in cronPresets" :key="p.value" type="button" class="btn-ghost px-2 py-1 text-xs" @click="cron = p.value">{{ p.label }}</button>
+                    </div>
+                </UiField>
+                <UiField label="Time zone"><input v-model="timezone" class="input" list="timezones" /></UiField>
+                <datalist id="timezones"><option v-for="z in timezones" :key="z" :value="z" /></datalist>
             </div>
             <p v-if="error" class="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">{{ error }}</p>
             <div class="flex justify-end">
@@ -32,7 +43,7 @@
                 <li v-for="a in list" :key="a.id" class="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
                     <div class="min-w-0 flex-1">
                         <div class="truncate font-medium">{{ a.embed?.title || a.content || "(embed)" }}</div>
-                        <div class="text-zinc-400">#{{ channelName(a.channelId) ?? "deleted" }} · next {{ new Date(a.runAt).toLocaleString() }}{{ a.repeatMinutes ? ` · repeats every ${describe(a.repeatMinutes)}` : "" }}</div>
+                        <div class="text-zinc-400">#{{ channelName(a.channelId) ?? "deleted" }} · next {{ new Date(a.runAt).toLocaleString() }}{{ a.cron ? ` · schedule ${a.cron} (${a.timezone})` : a.repeatMinutes ? ` · repeats every ${describe(a.repeatMinutes)}` : "" }}</div>
                     </div>
                     <button type="button" class="btn-danger" @click="remove(a.id)">Delete</button>
                 </li>
@@ -52,7 +63,17 @@ const draft = ref<MessageDraft>({ channelId: "", content: "", embed: null });
 // Default: one hour from now, formatted for datetime-local in the user's timezone.
 const toLocalInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 const runAt = ref(toLocalInput(new Date(Date.now() + 3_600_000)));
+// Minutes between runs; -1 = a custom (cron) schedule.
 const repeat = ref(0);
+const cron = ref("0 9 * * 1-5");
+const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+const timezones = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : ["UTC"];
+const cronPresets = [
+    { label: "Weekdays 9:00", value: "0 9 * * 1-5" },
+    { label: "Mondays 12:00", value: "0 12 * * 1" },
+    { label: "Daily 20:00", value: "0 20 * * *" },
+    { label: "1st of month", value: "0 12 1 * *" }
+];
 const busy = ref(false);
 const error = ref("");
 
@@ -62,7 +83,9 @@ async function create() {
     busy.value = true;
     error.value = "";
     try {
-        await api(`/guilds/${guildId.value}/announcements`, { method: "POST", body: { ...draft.value, runAt: new Date(runAt.value).toISOString(), repeatMinutes: repeat.value || null } });
+        await api(`/guilds/${guildId.value}/announcements`, { method: "POST", body: repeat.value === -1
+            ? { ...draft.value, cron: cron.value, timezone: timezone.value }
+            : { ...draft.value, runAt: new Date(runAt.value).toISOString(), repeatMinutes: repeat.value || null } });
         toast.show("Announcement scheduled");
         draft.value = { channelId: draft.value.channelId, content: "", embed: null };
         await refresh();

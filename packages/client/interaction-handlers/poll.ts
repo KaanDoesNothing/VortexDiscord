@@ -1,5 +1,5 @@
 import { InteractionHandler, InteractionHandlerTypes } from "@sapphire/framework";
-import { PermissionFlagsBits, type ButtonInteraction } from "discord.js";
+import { PermissionFlagsBits, type ButtonInteraction, MessageFlags } from "discord.js";
 import { Engagement } from "../lib/database";
 import { closePoll, renderPoll } from "../lib/engagement";
 
@@ -18,11 +18,11 @@ export class PollButtonHandler extends InteractionHandler {
 
     public async run(interaction: ButtonInteraction, { id, action }: { id: number; action: string }) {
         const poll = await Engagement.getPoll(id);
-        if (!poll || poll.closed) return interaction.reply({ content: "This poll has ended.", ephemeral: true });
+        if (!poll || poll.closed) return interaction.reply({ content: "This poll has ended.", flags: MessageFlags.Ephemeral });
 
         if (action === "close") {
             const canClose = interaction.user.id === poll.authorId || interaction.memberPermissions?.has(PermissionFlagsBits.ManageMessages);
-            if (!canClose) return interaction.reply({ content: "Only the person who made the poll (or a moderator) can end it.", ephemeral: true });
+            if (!canClose) return interaction.reply({ content: "Only the person who made the poll (or a moderator) can end it.", flags: MessageFlags.Ephemeral });
 
             await interaction.deferUpdate();
             await closePoll(id);
@@ -30,7 +30,7 @@ export class PollButtonHandler extends InteractionHandler {
         }
 
         const option = Number(action);
-        if (!Number.isInteger(option) || option < 0 || option >= poll.options.length) return interaction.reply({ content: "Unknown option.", ephemeral: true });
+        if (!Number.isInteger(option) || option < 0 || option >= poll.options.length) return interaction.reply({ content: "Unknown option.", flags: MessageFlags.Ephemeral });
 
         const result = await Engagement.votePoll(id, interaction.user.id, option);
         const counts = await Engagement.pollResults(id, poll.options.length);
@@ -39,7 +39,7 @@ export class PollButtonHandler extends InteractionHandler {
         await interaction.update(renderPoll(poll, counts));
         await interaction.followUp({
             content: result === "removed" ? "Your vote was removed." : `You voted for **${poll.options[option]}**.`,
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
     }
 }

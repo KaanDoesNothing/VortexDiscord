@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, type GuildMember } from "discord.js";
+import { SlashCommandBuilder, type GuildMember, MessageFlags } from "discord.js";
 import type { SearchPlatform } from "lavalink-client";
 import { addTracks, getOrCreatePlayer, startIfIdle } from "../../lib/music/enqueue";
 import { MusicCommand } from "../../lib/music/command";
@@ -33,7 +33,7 @@ export class PlayCommand extends MusicCommand {
         const source = (ctx.options.getString("source") ?? settings.searchSource) as SearchPlatform;
         const playNext = ctx.options.getBoolean("next") ?? false;
         // Jumping the queue affects everyone, so it needs DJ rights.
-        if (playNext && !isDj(member as GuildMember, settings)) return ctx.reply({ content: "Only DJs can add songs to the front of the queue.", ephemeral: true });
+        if (playNext && !isDj(member as GuildMember, settings)) return ctx.reply({ content: "Only DJs can add songs to the front of the queue.", flags: MessageFlags.Ephemeral });
 
         await ctx.deferReply();
 

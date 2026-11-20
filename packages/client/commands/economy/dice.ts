@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
-import { DBManager } from "../../lib/database";
-import { ECONOMY, getCurrency } from "../../lib/economy";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { ECONOMY, economyFor } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
 // Winnings on a correct guess, as a multiple of the bet. 5x profit on 1-in-6 odds is a fair game;
@@ -19,20 +18,23 @@ export class DiceCommand extends VortexCommand {
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const guess = ctx.options.getInteger("roll", true);
         const amount = ctx.options.getInteger("amount", true);
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
+        // The server can turn gambling off or cap bets (Dashboard → Economy).
+        const betProblem = eco.checkBet(amount);
+        if (betProblem) return ctx.reply({ content: betProblem, flags: MessageFlags.Ephemeral });
 
         const rolled = Math.floor(Math.random() * 6) + 1;
         const won = guess === rolled;
         const winnings = amount * PAYOUT_MULTIPLIER;
 
         // Atomic: only applies if they can cover the bet.
-        const balance = await DBManager.adjustBalance(ctx.user.id, won ? winnings : -amount, amount);
-        if (balance === null) return ctx.reply({ content: `You don't have ${currency.format(amount)} to bet.`, ephemeral: true });
+        const balance = await eco.adjust(ctx.user.id, won ? winnings : -amount, amount);
+        if (balance === null) return ctx.reply({ content: `You don't have ${eco.format(amount)} to bet.`, flags: MessageFlags.Ephemeral });
 
         const outcome = won
-            ? `🎲 Rolled a **${rolled}**! You won ${currency.format(winnings)}.`
-            : `🎲 Rolled a **${rolled}**. You lost ${currency.format(amount)}.`;
+            ? `🎲 Rolled a **${rolled}**! You won ${eco.format(winnings)}.`
+            : `🎲 Rolled a **${rolled}**. You lost ${eco.format(amount)}.`;
 
-        return ctx.reply({ content: `${outcome}\nWallet: ${currency.format(balance)}` });
+        return ctx.reply({ content: `${outcome}\nWallet: ${eco.format(balance)}` });
     }
 }

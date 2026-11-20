@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
 import { apiErrorMessage, getJson } from "../../lib/http";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -21,7 +21,7 @@ export class GithubCommand extends VortexCommand {
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         // Accept full URLs too.
         const query = ctx.options.getString("query", true).trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
-        if (!/^[\w.-]+(\/[\w.-]+)?$/.test(query)) return ctx.reply({ content: "Use `owner/repo` or a username.", ephemeral: true });
+        if (!/^[\w.-]+(\/[\w.-]+)?$/.test(query)) return ctx.reply({ content: "Use `owner/repo` or a username.", flags: MessageFlags.Ephemeral });
         await ctx.deferReply();
 
         try {

@@ -16,7 +16,7 @@
             <li v-for="p in panels" :key="p.id" class="flex flex-wrap items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
                 <div class="min-w-0 flex-1">
                     <div class="font-semibold">{{ p.title }}</div>
-                    <div class="text-sm text-zinc-400">#{{ channelName(p.channelId) ?? "deleted channel" }} · {{ p.roles.length }} role{{ p.roles.length === 1 ? "" : "s" }} · {{ p.mode === "single" ? "pick one" : "pick any" }}</div>
+                    <div class="text-sm text-zinc-400">#{{ channelName(p.channelId) ?? "deleted channel" }} · {{ p.roles.length }} role{{ p.roles.length === 1 ? "" : "s" }} · {{ p.mode === "single" ? "pick one" : "pick any" }} · {{ p.style === "select" ? "menu" : "buttons" }}</div>
                 </div>
                 <button type="button" class="btn-ghost px-3 py-1.5" @click="edit(p)">Edit</button>
                 <button type="button" class="btn-danger" @click="remove(p)">Delete</button>
@@ -33,7 +33,14 @@
                         <option value="single">Pick only one (switching removes the other)</option>
                     </select>
                 </UiField>
+                <UiField label="Style">
+                    <select v-model="editing.style" class="input">
+                        <option value="buttons">Buttons (up to 25)</option>
+                        <option value="select">Dropdown menu (tidier for many roles)</option>
+                    </select>
+                </UiField>
             </div>
+            <p class="text-xs text-zinc-500">For classic emoji reactions on any message, use <code>/reactionrole add</code> in Discord.</p>
             <UiField label="Title"><input v-model="editing.title" maxlength="256" class="input" /></UiField>
             <UiField label="Description" hint="Optional text above the buttons."><textarea v-model="editing.description" rows="3" maxlength="2000" class="input" /></UiField>
 
@@ -73,8 +80,8 @@ const error = ref("");
 function edit(p?: RolePanel) {
     error.value = "";
     editing.value = p
-        ? { id: p.id, channelId: p.channelId, title: p.title, description: p.description, mode: p.mode, roles: p.roles.map((r) => ({ ...r, emoji: r.emoji ?? "" })) }
-        : { channelId: "", title: "Pick your roles", description: "", mode: "toggle", roles: [{ roleId: "", label: "", emoji: "" }] };
+        ? { id: p.id, channelId: p.channelId, title: p.title, description: p.description, mode: p.mode, style: p.style ?? "buttons", roles: p.roles.map((r) => ({ ...r, emoji: r.emoji ?? "" })) }
+        : { channelId: "", title: "Pick your roles", description: "", mode: "toggle", style: "buttons", roles: [{ roleId: "", label: "", emoji: "" }] };
 }
 
 async function submit() {

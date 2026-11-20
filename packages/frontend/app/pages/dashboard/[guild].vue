@@ -73,6 +73,7 @@ const nav = [
     ] },
     { title: "Moderation", items: [
         { to: "/automod", label: "Auto-mod" },
+        { to: "/security", label: "Anti-raid & verification" },
         { to: "/moderation", label: "Mod log & punishments" },
         { to: "/event-logs", label: "Event logs" },
         { to: "/logs", label: "Command log" }
@@ -86,11 +87,14 @@ const nav = [
         { to: "/giveaways", label: "Giveaways" },
         { to: "/birthdays", label: "Birthdays" },
         { to: "/music", label: "Music" },
-        { to: "/economy", label: "Economy" }
+        { to: "/temp-voice", label: "Temp voice" },
+        { to: "/economy", label: "Economy & shop" }
     ] },
     { title: "Utility", items: [
         { to: "/tickets", label: "Tickets" },
         { to: "/suggestions", label: "Suggestions" },
+        { to: "/autoresponders", label: "Autoresponders & stickies" },
+        { to: "/feeds", label: "Social feeds" },
         { to: "/announcements", label: "Announcements" },
         { to: "/embed", label: "Embed builder" }
     ] }

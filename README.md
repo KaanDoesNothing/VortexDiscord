@@ -21,62 +21,67 @@ Finished with AI and updated because I don't have the motivation for this projec
 
 ## Features
 
+**Getting started**
+- **`/setup`** applies a preset (community, gaming, small/friends, moderation only) in one command; the dashboard fine-tunes the rest.
+- When the bot joins a server, whoever added it gets a quick-start guide.
+- **Copy settings** between servers you manage (dashboard), or back them up with `/settings export` / `/settings import`.
+
 **Moderation**
-- Commands: warn, timeout, kick, ban, **temporary bans** that lift themselves, unban, lock and unlock channels, slowmode, purge (optionally one user's messages), and private **mod notes**.
+- Commands: warn, timeout, kick, ban, **temporary bans** that lift themselves, **softban**, **massban** (by IDs, for raid cleanup), unban, nickname, role add/remove/all, lock and unlock channels, slowmode, purge, and private **mod notes**.
+- **Cases**: every action gets a case number; `/case view|reason|delete`.
 - Role hierarchy is respected: moderators can't act on people ranked at or above them.
-- Everything is logged to a mod-log channel and the dashboard.
-- **Warning punishments**, e.g. 3 warns → 1 hour timeout, 5 → kick.
-- **Ban appeals**: a DM with your appeal link, sent before the ban.
-- **Event logs**: deleted and edited messages, joins and leaves (with account age), role and nickname changes, voice activity.
+- **DMs to punished members** with your own message, plus a **ban appeal** message. Optional "reason required" rule.
+- **Warning punishments**, e.g. 3 warns → 1 hour timeout, 5 → kick, with optional **warning expiry**.
+- **Event logs**, each to its own channel: messages, joins/leaves (with account age and invite used), roles and nicknames, voice, server changes (channels, roles, emojis, settings), bans/unbans (also ones done outside the bot) and invites.
 
 **Auto-mod**
-- Blocked words (whole words or phrases), Discord invites, other links (with an allow-list), mass mentions and message floods.
-- Punishment is a delete, a warn or a timeout, with role and channel exemptions.
-- Edited messages are checked too.
+- Blocked words, **phishing/scam links** (community list, refreshed every 6 hours), invites, other links (allow-list), mass mentions, floods, **repeated messages**, **caps**, **emoji spam**, **repeated characters**, **walls of text** and **zalgo**.
+- Each rule has its own punishment (or the default): delete, warn, timeout, kick or ban. Role and channel exemptions. Edited messages are checked too.
+
+**Anti-raid and verification**
+- Join-flood detection with an automatic **lockdown** (highest verification level, new joiners kicked with a DM, restored afterwards), or alert-only. `/lockdown start|end|status`.
+- Minimum account age.
+- **Verification** panel: a button, or an image **captcha**, that gives a verified role.
 
 **Music** (via [NodeLink](https://github.com/PerformanC/NodeLink), a Lavalink-compatible audio server)
 - Play songs and playlists from YouTube, YouTube Music, SoundCloud, Spotify, Deezer, Apple Music, Bandcamp, Twitch and more, or search and pick from the results.
-- A "Now playing" card with buttons: previous, pause, skip, stop, loop, shuffle and volume.
-- Commands: queue (with pages), skip to a song, previous, seek, loop (song or queue), shuffle, remove, move, clear, volume, **lyrics** and **autoplay** (keeps playing related songs).
-- **Audio effects**: bass boost, nightcore, vaporwave, 8D, karaoke, low-pass, tremolo, vibrato, EQ presets and a speed setting.
-- **DJ roles**: only DJs can skip other people's songs, stop, change volume and so on. People can always skip or remove their own songs, and someone alone with the bot can control it.
-- Queue limits per server and per member, a default and maximum volume, and auto-leave when the queue ends or everyone leaves. **24/7 mode** keeps the bot in voice.
-- The dashboard has a **live player**: now playing, a seek bar, controls, volume, and a queue you can reorder.
+- A "Now playing" card with buttons, queue tools, **lyrics**, **autoplay**, **audio effects**, **DJ roles**, queue limits, auto-leave and **24/7 mode**.
+- The dashboard has a **live player**.
 
 **Economy and games**
-- Global wallet plus a **bank** that `/rob` can't touch.
-- Earning: `/daily` with streak bonuses, `/weekly`, `/work`, `/beg`, `/crime`, `/rob`, `/pay`, `/leaderboard`.
-- Games: **blackjack** (buttons), **slots**, **high/low**, coinflip, dice and trivia. Payouts are tuned so the house keeps a small edge and coins can't be farmed.
-- Every balance change is atomic, so spamming commands can't duplicate coins.
+- Servers choose the **shared global economy** or **their own**, with their own balances, leaderboard and **tunable payouts** (daily, weekly, work, beg, crime, rob, starting balance, max bet). Gambling and robbing can be turned off.
+- A **shop** of roles and items (stock, per-member limits, required roles), `/inventory` and `/use`. Admin `/economy give|take|reset` in server mode.
+- Games: **blackjack**, **slots**, **high/low**, coinflip, dice and trivia. Every balance change is atomic.
+- Optional **top.gg vote rewards**.
+
+**Leveling**
+- **XP** per message (random range, cooldown) and per minute in **voice**, with **role and channel multipliers**, no-XP roles and ignored channels. Adjustable difficulty curve.
+- Level-up messages (channel, same channel, or DM) with embeds, **role rewards** (stacking or highest-only), customizable **rank cards** (accent color, background image), `/levels`, `/xp` admin tools and an optional **public leaderboard web page**.
+- XP is written in batches every few seconds instead of once per message.
 
 **Engagement**
-- **Leveling** with rank cards, role rewards at chosen levels, a cooldown, ignored channels and level-up messages.
-- **Welcome and goodbye** messages, with optional generated welcome cards, plus auto-roles.
-- **Role panels**: messages with buttons members click to give themselves roles.
-- **Starboard**, **giveaways** (they end on time even across restarts), **polls** with live result bars, and **birthday** announcements.
+- **Welcome and goodbye** messages with embeds, a welcome **DM**, generated welcome cards, invite info (`{inviter}`), plus auto-roles.
+- **Role panels** with buttons or a **dropdown menu**, and classic **reaction roles** (`/reactionrole`).
+- **Invite tracking** (`/invites`, top inviters), **starboard** (ignored channels, NSFW rule), **giveaways**, **polls** and **birthdays**.
+- **Temp voice channels** ("join to create") with `/voice` controls for owners.
 
 **Utility**
-- **Tickets**: private support channels with staff roles and text transcripts.
-- **Suggestions** with voting and staff review.
-- **Reminders**, **scheduled or repeating announcements**, an **embed builder**, and **custom commands** with placeholders.
+- **Tickets**: ticket types in a menu, **question forms**, per-type categories and staff, claiming, add/remove members, and **HTML transcripts** (also DMed to the member).
+- **Social feeds**: new YouTube videos, Twitch streams, Reddit posts and any RSS/Atom feed.
+- **Autoresponders** (trigger words, no prefix), **sticky messages** and **stats channels** (live member counts in channel names).
+- **Suggestions**, **reminders**, **scheduled announcements** (once, repeating, or on a **cron schedule** in any time zone), an **embed builder** and **custom commands**.
 
-**Lookup, news and tools**
-- Lookup: weather, Wikipedia, dictionary, crypto prices, currency exchange, GitHub, npm, anime and manga, and world time.
-- News: Hacker News headlines and topic search, and "on this day" in history.
-- Tools: a safe calculator, color previews, Base64, hashing, QR codes, Discord timestamps, choose and random.
+**Lookup, news, tools, fun and roleplay**
+- Weather, Wikipedia, dictionary, crypto, currency, GitHub, npm, anime, world time, Hacker News, "on this day", a calculator, colors, Base64, hashing, QR codes, timestamps, jokes, memes, games and 30 roleplay GIF commands.
 
-**Fun and roleplay**
-- Jokes, facts, memes (NSFW filtered), cats, dogs, rock-paper-scissors, ship, rate, the 8-ball, and avatar memes.
-- 30 roleplay GIF commands.
-
-**Configuration**
-- Disable any command, or limit it to certain roles or channels with a per-command cooldown.
-- Choose which channels commands work in, set a custom prefix, rename the currency, and use `/settings` for quick changes.
+**Customization**
+- **Branding**: your embed color and footer on every reply.
+- Every bot message (welcome, goodbye, level-up, birthday, ticket, DMs) can be text and/or an **embed**, with placeholders like `{user.mention}`, `{user.avatar}`, `{server.icon}`, `{inviter}`, `{level}` and `{random:a|b|c}`.
+- Disable any command, limit it to roles/channels with a cooldown, add **prefix aliases**, make whole command categories reply **privately**, and auto-delete prefix command messages.
 - Changes made in the dashboard are recorded in an **audit log**.
 
 **Website**
-- A home page and a **live stats page** (shards, ping, usage over the last 24 hours, top commands, system).
-- A full per-server **dashboard** (see [Dashboard](#dashboard)).
+- A home page, a **live stats page**, public server leaderboards, and a full per-server **dashboard** (see [Dashboard](#dashboard)).
 
 ## Setup
 
@@ -157,6 +162,20 @@ Welcome and goodbye messages, auto-roles, welcome cards, the joins/leaves and ro
 2. Set `DISCORD_MEMBERS_INTENT=true` in `.env` and restart the bot.
 
 Do step 1 before step 2. If the bot asks for the intent without it being enabled in the portal, Discord refuses the login. Bots in 100 or more servers also need Discord's approval for this intent.
+
+Anti-raid, invite tracking and `/role all` also need this intent. Invite tracking and lockdowns need the bot to have **Manage Server**.
+
+### (Optional) Growth and integrations
+
+All optional, in `packages/client/.env` (see `.env.example`):
+
+| Variable | What it does |
+|---|---|
+| `SUPPORT_SERVER_URL` | Support server link on `/invite`, `/help`, `/feedback` and the join message |
+| `FEEDBACK_CHANNEL_ID` | Channel where `/feedback` reports are posted |
+| `TOPGG_TOKEN`, `DBL_TOKEN` | Post the server count to top.gg / discordbotlist.com every 30 minutes |
+| `TOPGG_WEBHOOK_SECRET`, `VOTE_REWARD` | Vote rewards: set top.gg's webhook to `<API URL>/webhooks/topgg` with this secret as its Authorization |
+| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | Twitch "went live" feeds |
 
 ### 6. (Optional) Music with NodeLink
 
@@ -588,6 +607,7 @@ In `packages/client`:
 | `bun start` | Run the bot |
 | `bun run check` | Load every command, listener, button handler and route **without logging in** and report problems (name clashes, invalid slash definitions) |
 | `bun run typecheck` | TypeScript check |
+| `bun test` | Unit tests for settings, auto-mod, leveling, feeds and cron logic |
 | `bun run db:generate` | Create a migration after editing `lib/database/schema.ts` |
 | `bun run db:migrate` | Apply migrations now (the bot also does this on start) |
 | `bun run db:studio` | Browse the database in your browser |

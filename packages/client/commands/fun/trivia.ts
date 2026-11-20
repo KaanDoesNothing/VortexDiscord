@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder } from "discord.js";
-import { DBManager } from "../../lib/database";
-import { getCurrency } from "../../lib/economy";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder, MessageFlags } from "discord.js";
+import { economyFor } from "../../lib/economy";
 import { apiErrorMessage, getJson } from "../../lib/http";
 import { replyAndFetch, VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -29,7 +28,7 @@ export class TriviaCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const difficulty = ctx.options.getString("difficulty");
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
 
         let q: Question;
         try {
@@ -37,7 +36,7 @@ export class TriviaCommand extends VortexCommand {
             if (!data.results[0]) throw new Error();
             q = data.results[0];
         } catch (error) {
-            return ctx.reply({ content: apiErrorMessage(error), ephemeral: true });
+            return ctx.reply({ content: apiErrorMessage(error), flags: MessageFlags.Ephemeral });
         }
 
         const answers = [q.correct_answer, ...q.incorrect_answers].map(decode).sort(() => Math.random() - 0.5);
@@ -47,7 +46,7 @@ export class TriviaCommand extends VortexCommand {
         const embed = new VortexEmbed()
             .setTitle(`❓ ${decode(q.category)} · ${q.difficulty}`)
             .setDescription(`**${decode(q.question)}**\n\n${answers.map((a, i) => `**${letters[i]}.** ${a}`).join("\n")}`)
-            .setFooter({ text: `20 seconds · correct answer wins ${REWARD[q.difficulty]} ${currency.name}` });
+            .setFooter({ text: `20 seconds · correct answer wins ${REWARD[q.difficulty]} ${eco.name}` });
 
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             answers.map((_, i) => new ButtonBuilder().setCustomId(String(i)).setLabel(letters[i]!).setStyle(ButtonStyle.Primary))
@@ -68,8 +67,8 @@ export class TriviaCommand extends VortexCommand {
 
         const picked = Number(click.customId);
         if (picked === correct) {
-            await DBManager.adjustBalance(ctx.user.id, REWARD[q.difficulty]);
-            return click.update({ embeds: [embed.setColor(0x30a46c).setFooter({ text: `✅ Correct! +${REWARD[q.difficulty]} ${currency.name}` })], components: [reveal(picked)] });
+            await eco.adjust(ctx.user.id, REWARD[q.difficulty]);
+            return click.update({ embeds: [embed.setColor(0x30a46c).setFooter({ text: `✅ Correct! +${REWARD[q.difficulty]} ${eco.name}` })], components: [reveal(picked)] });
         }
         return click.update({ embeds: [embed.setColor(0xe5484d).setFooter({ text: `❌ Wrong! It was ${letters[correct]}: ${answers[correct]}` })], components: [reveal(picked)] });
     }

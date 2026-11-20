@@ -1,44 +1,98 @@
 // Shapes returned by the bot's API (packages/client/routes). Keep in sync with lib/settings.ts there.
 
+// A message template: text plus an optional embed. Placeholders work in every text field.
+export interface RichEmbed { enabled: boolean; title: string; description: string; color: string; image: string; thumbnail: string; footer: string }
+export interface RichMessage { content: string; embed: RichEmbed }
+
+export type RuleAction = "default" | "delete" | "warn" | "timeout" | "kick" | "ban";
+export type AutomodRule = "words" | "invites" | "links" | "phishing" | "mentions" | "spam" | "duplicates" | "caps" | "emoji" | "repeatedChars" | "newlines" | "zalgo";
+
 export interface GuildSettings {
+    branding: { color: string; footer: string };
     commandChannels: { mode: "all" | "allow" | "deny"; channelIds: string[] };
     commandRules: Record<string, { roleIds: string[]; channelIds: string[]; cooldownSeconds: number }>;
+    aliases: { alias: string; command: string }[];
+    replies: { privateCategories: string[]; deleteInvocation: boolean };
     leveling: {
         enabled: boolean;
-        messagesPerLevel: number;
+        xpMin: number;
+        xpMax: number;
+        difficulty: number;
         cooldownSeconds: number;
         ignoredChannelIds: string[];
+        noXpRoleIds: string[];
+        roleMultipliers: { roleId: string; percent: number }[];
+        channelMultipliers: { channelId: string; percent: number }[];
+        voice: { enabled: boolean; xpPerMinute: number; requireOthers: boolean; ignoreMuted: boolean };
         announce: boolean;
         announceChannelId: string | null;
-        message: string;
+        announceDm: boolean;
+        message: RichMessage;
         rewards: { level: number; roleId: string }[];
         stackRewards: boolean;
+        card: { accentColor: string; backgroundUrl: string };
+        publicLeaderboard: boolean;
     };
-    welcome: { enabled: boolean; channelId: string | null; message: string; image: boolean };
-    goodbye: { enabled: boolean; channelId: string | null; message: string };
+    welcome: { enabled: boolean; channelId: string | null; message: RichMessage; image: boolean; dm: { enabled: boolean; message: RichMessage } };
+    goodbye: { enabled: boolean; channelId: string | null; message: RichMessage };
     autoRoleIds: string[];
     modLog: { enabled: boolean; channelId: string | null };
-    logs: { messages: string | null; members: string | null; roles: string | null; voice: string | null };
+    logs: { messages: string | null; members: string | null; roles: string | null; voice: string | null; server: string | null; moderation: string | null; invites: string | null };
+    moderation: { dmOnAction: boolean; dmMessage: RichMessage; warnExpiryDays: number; requireReason: boolean };
     automod: {
         enabled: boolean;
         blockedWords: string[];
         blockInvites: boolean;
         blockLinks: boolean;
         allowedDomains: string[];
+        blockPhishing: boolean;
         maxMentions: number;
         spam: { enabled: boolean; messages: number; seconds: number };
-        action: "delete" | "warn" | "timeout";
+        duplicates: { enabled: boolean; count: number; seconds: number };
+        caps: { enabled: boolean; percent: number; minLength: number };
+        emoji: { enabled: boolean; max: number };
+        repeatedChars: { enabled: boolean; max: number };
+        newlines: { enabled: boolean; max: number };
+        zalgo: boolean;
+        action: "delete" | "warn" | "timeout" | "kick" | "ban";
+        actions: Record<AutomodRule, RuleAction>;
         timeoutMinutes: number;
         exemptRoleIds: string[];
         exemptChannelIds: string[];
     };
+    antiRaid: { enabled: boolean; joins: number; seconds: number; action: "lockdown" | "alert"; lockdownMinutes: number; minAccountAgeDays: number; alertChannelId: string | null };
+    verification: { enabled: boolean; roleId: string | null; method: "button" | "captcha"; panelMessage: string };
     warnThresholds: { count: number; action: "timeout" | "kick" | "ban"; durationMinutes: number }[];
-    appeals: { enabled: boolean; message: string };
-    starboard: { enabled: boolean; channelId: string | null; emoji: string; threshold: number; allowSelfStar: boolean };
-    birthdays: { enabled: boolean; channelId: string | null; message: string };
-    tickets: { enabled: boolean; categoryId: string | null; staffRoleIds: string[]; openMessage: string; maxOpenPerUser: number; logChannelId: string | null };
+    appeals: { enabled: boolean; message: RichMessage };
+    starboard: { enabled: boolean; channelId: string | null; emoji: string; threshold: number; allowSelfStar: boolean; ignoredChannelIds: string[]; allowNsfw: boolean };
+    birthdays: { enabled: boolean; channelId: string | null; message: RichMessage };
+    tickets: {
+        enabled: boolean;
+        categoryId: string | null;
+        staffRoleIds: string[];
+        openMessage: RichMessage;
+        maxOpenPerUser: number;
+        logChannelId: string | null;
+        transcriptFormat: "html" | "text";
+        pingStaff: boolean;
+        types: { name: string; emoji: string; description: string; categoryId: string | null; staffRoleIds: string[]; questions: string[] }[];
+    };
     suggestions: { enabled: boolean; channelId: string | null };
-    economy: { currencyName: string; currencyEmoji: string };
+    economy: {
+        currencyName: string;
+        currencyEmoji: string;
+        mode: "global" | "server";
+        startingBalance: number;
+        daily: { reward: number; streakBonus: number };
+        weekly: { reward: number };
+        work: { min: number; max: number; cooldownMinutes: number };
+        beg: { min: number; max: number; chance: number; cooldownMinutes: number };
+        crime: { min: number; max: number; chance: number; fineMin: number; fineMax: number; cooldownMinutes: number };
+        rob: { enabled: boolean; chance: number; cooldownMinutes: number };
+        gambling: { enabled: boolean; maxBet: number };
+    };
+    tempVoice: { enabled: boolean; hubChannelIds: string[]; categoryId: string | null; nameTemplate: string; userLimit: number };
+    statsChannels: { channelId: string; template: string }[];
     music: {
         enabled: boolean;
         djRoleIds: string[];
@@ -91,10 +145,12 @@ export interface GuildOverview {
     };
     channels: ChannelOption[];
     categories: { id: string; name: string }[];
+    voiceChannels: ChannelOption[];
     roles: RoleOption[];
     config: GuildConfig;
     placeholders: Record<string, string>;
-    features: { membersIntent: boolean };
+    features: { membersIntent: boolean; twitch: boolean; manageGuild: boolean };
+    statPlaceholders: Record<string, string>;
     stats: {
         commandsTotal: number;
         commands7d: number;
@@ -118,7 +174,7 @@ export interface Paginated<T> {
 
 export interface ModLogRow { id: number; type: string; moderatorId: string | null; targetId: string | null; reason: string; createdAt: string }
 export interface CommandLogRow { id: number; userId: string; command: string; parameters: string; slash: boolean; createdAt: string }
-export interface LeaderboardRow { rank: number; userId: string; level: number; messages: number }
+export interface LeaderboardRow { rank: number; userId: string; level: number; xp: number; messages: number; voiceMinutes: number }
 export interface AuditRow { id: number; userId: string; action: string; details: Record<string, unknown>; createdAt: string }
 
 export interface CustomCommand {
@@ -140,6 +196,7 @@ export interface RolePanel {
     title: string;
     description: string;
     mode: "toggle" | "single";
+    style: "buttons" | "select";
     roles: { roleId: string; label: string; emoji?: string }[];
 }
 
@@ -151,7 +208,16 @@ export interface MessageDraft {
     embed: { title: string; description: string; color: string; image?: string; footer?: string } | null;
 }
 
-export interface Announcement extends MessageDraft { id: number; runAt: string; repeatMinutes: number | null }
+export interface Announcement extends MessageDraft { id: number; runAt: string; repeatMinutes: number | null; cron?: string | null; timezone?: string | null }
+
+export interface ShopItem { id: number; name: string; description: string; emoji: string; price: number; roleId: string | null; stock: number | null; maxPerUser: number; requiredRoleId: string | null; enabled: boolean }
+export interface Autoresponder { id: number; trigger: string; match: "contains" | "exact" | "startsWith" | "word"; response: string; embed: boolean; reaction: string; channelIds: string[]; cooldownSeconds: number; enabled: boolean; uses: number }
+export interface Feed { id: number; type: "youtube" | "twitch" | "reddit" | "rss"; source: string; label: string; channelId: string; message: string; pingRoleId: string | null; failures: number; lastCheckedAt: string | null }
+export interface GuildExtras {
+    stickies: { channelId: string; content: string; embed: boolean }[];
+    reactionRoles: { id: number; channelId: string; messageId: string; emoji: string; roleId: string }[];
+    statPlaceholders: Record<string, string>;
+}
 
 export interface Ticket { id: number; channelId: string; ownerId: string; topic: string | null; closed: boolean; closedBy: string | null; createdAt: string; closedAt: string | null }
 export interface Suggestion { id: number; authorId: string; content: string; status: "open" | "approved" | "denied" | "implemented"; response: string | null; createdAt: string }

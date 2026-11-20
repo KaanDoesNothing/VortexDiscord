@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
-import { DBManager } from "../../lib/database";
-import { getCurrency } from "../../lib/economy";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { economyFor } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -18,15 +17,16 @@ export class BalanceCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("member") ?? ctx.user;
-        if (user.bot) return ctx.reply({ content: "Bots don't have a balance.", ephemeral: true });
+        if (user.bot) return ctx.reply({ content: "Bots don't have a balance.", flags: MessageFlags.Ephemeral });
 
-        const [data, currency] = await Promise.all([DBManager.getUser(user.id), getCurrency(ctx.guildId)]);
+        const eco = await economyFor(ctx.guildId);
+        const data = await eco.wallet(user.id);
 
         const embed = new VortexEmbed()
             .setAuthor({ name: `${user.displayName}'s balance`, iconURL: user.displayAvatarURL() })
-            .addField("Wallet", currency.format(data.balance), true)
-            .addField("Bank", currency.format(data.bank), true)
-            .addField("Total", currency.format(data.balance + data.bank), true)
+            .addField("Wallet", eco.format(data.balance), true)
+            .addField("Bank", eco.format(data.bank), true)
+            .addField("Total", eco.format(data.balance + data.bank), true)
             .setFooter({ text: "Coins in the bank are safe from /rob" });
 
         return ctx.reply({ embeds: [embed] });

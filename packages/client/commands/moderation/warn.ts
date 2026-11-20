@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
-import { checkModerationTarget } from "../../lib/moderation";
-import { logModAction } from "../../lib/modlog";
+import { checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget } from "../../lib/modlog";
 
 // /warn <user> [reason]: records a warning (see /warns) and DMs the user about it.
 export class WarnCommand extends VortexCommand {
@@ -22,17 +23,18 @@ export class WarnCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
-        const reason = ctx.options.getString("reason") ?? "None";
+        const member = await fetchMember(ctx.guild!, user.id);
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
-        if (user.bot) return ctx.reply({ content: "Bots can't be warned.", ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
+        if (user.bot) return ctx.reply({ content: "Bots can't be warned.", flags: MessageFlags.Ephemeral });
 
         await logModAction(ctx.guild!, { type: "warn", moderator: ctx.user, target: user, reason });
 
-        // Let them know; it's fine if their DMs are closed.
-        const dmSent = await user.send(`You were warned in **${ctx.guild!.name}**. Reason: ${reason}`).then(() => true, () => false);
+        // Let them know (if the server has moderation DMs on); it's fine if their DMs are closed.
+        const dmSent = await notifyTarget(ctx.guild!, { type: "warn", moderator: ctx.user, target: user, reason });
 
         return ctx.reply({ content: `${user.tag} has been warned.${dmSent ? "" : " (Couldn't DM them.)"}` });
     }

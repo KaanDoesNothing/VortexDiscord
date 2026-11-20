@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { MusicCommand } from "../../lib/music/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -17,7 +17,7 @@ export class LyricsCommand extends MusicCommand {
         const ready = await this.prepare(ctx, { sameChannel: false });
         if (!ready) return;
         const track = ready.player.queue.current;
-        if (!track) return ctx.reply({ content: "Nothing is playing right now.", ephemeral: true });
+        if (!track) return ctx.reply({ content: "Nothing is playing right now.", flags: MessageFlags.Ephemeral });
 
         await ctx.deferReply();
         const lyrics = await ready.player.getCurrentLyrics().catch(() => null);

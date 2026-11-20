@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { ChannelType, SlashCommandBuilder, time } from "discord.js";
+import { ChannelType, SlashCommandBuilder, time, MessageFlags } from "discord.js";
 import { Engagement } from "../../lib/database";
 import { concludeGiveaway, rerollGiveaway, startGiveaway } from "../../lib/engagement";
 import { formatDuration, parseDuration } from "../../lib/scheduler";
@@ -34,7 +34,7 @@ export class GiveawayCommand extends VortexCommand {
             case "start": {
                 const durationMs = parseDuration(ctx.options.getString("duration", true));
                 if (!durationMs || durationMs < 60_000 || durationMs > 60 * 86_400_000) {
-                    return ctx.reply({ content: "Give a duration between `1m` and `60d`, e.g. `1h` or `2d`.", ephemeral: true });
+                    return ctx.reply({ content: "Give a duration between `1m` and `60d`, e.g. `1h` or `2d`.", flags: MessageFlags.Ephemeral });
                 }
 
                 const channel = ctx.options.getChannel("channel") ?? ctx.channel;
@@ -47,28 +47,28 @@ export class GiveawayCommand extends VortexCommand {
                     durationMs
                 }).catch((error: Error) => error);
 
-                if (g instanceof Error) return ctx.reply({ content: g.message, ephemeral: true });
-                return ctx.reply({ content: `🎉 Giveaway #${g.id} started in <#${g.channelId}>. It ends in ${formatDuration(durationMs)}.`, ephemeral: true });
+                if (g instanceof Error) return ctx.reply({ content: g.message, flags: MessageFlags.Ephemeral });
+                return ctx.reply({ content: `🎉 Giveaway #${g.id} started in <#${g.channelId}>. It ends in ${formatDuration(durationMs)}.`, flags: MessageFlags.Ephemeral });
             }
 
             case "end": {
                 const id = ctx.options.getInteger("id", true);
                 const g = await Engagement.getGiveaway(id);
-                if (!g || g.guildId !== guild.id) return ctx.reply({ content: "No giveaway with that ID here.", ephemeral: true });
-                if (g.ended) return ctx.reply({ content: "That giveaway already ended. Use `/giveaway reroll` for new winners.", ephemeral: true });
+                if (!g || g.guildId !== guild.id) return ctx.reply({ content: "No giveaway with that ID here.", flags: MessageFlags.Ephemeral });
+                if (g.ended) return ctx.reply({ content: "That giveaway already ended. Use `/giveaway reroll` for new winners.", flags: MessageFlags.Ephemeral });
 
                 await concludeGiveaway(id);
-                return ctx.reply({ content: `Giveaway #${id} ended.`, ephemeral: true });
+                return ctx.reply({ content: `Giveaway #${id} ended.`, flags: MessageFlags.Ephemeral });
             }
 
             case "reroll": {
                 const id = ctx.options.getInteger("id", true);
                 const g = await Engagement.getGiveaway(id);
-                if (!g || g.guildId !== guild.id) return ctx.reply({ content: "No giveaway with that ID here.", ephemeral: true });
-                if (!g.ended) return ctx.reply({ content: "That giveaway hasn't ended yet.", ephemeral: true });
+                if (!g || g.guildId !== guild.id) return ctx.reply({ content: "No giveaway with that ID here.", flags: MessageFlags.Ephemeral });
+                if (!g.ended) return ctx.reply({ content: "That giveaway hasn't ended yet.", flags: MessageFlags.Ephemeral });
 
                 await rerollGiveaway(id);
-                return ctx.reply({ content: `Rerolled giveaway #${id}.`, ephemeral: true });
+                return ctx.reply({ content: `Rerolled giveaway #${id}.`, flags: MessageFlags.Ephemeral });
             }
 
             case "list": {
@@ -76,7 +76,7 @@ export class GiveawayCommand extends VortexCommand {
                 const embed = new VortexEmbed().setTitle("Giveaways").setDescription(list.length
                     ? list.map((g) => `\`#${g.id}\` **${g.prize}**: ${g.ended ? "ended" : `ends ${time(g.endsAt, "R")}`} · ${g.entrants.length} entries · <#${g.channelId}>`).join("\n")
                     : "No giveaways yet. Start one with `/giveaway start`.");
-                return ctx.reply({ embeds: [embed], ephemeral: true });
+                return ctx.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             }
         }
     }

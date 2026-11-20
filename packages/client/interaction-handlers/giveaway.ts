@@ -2,6 +2,7 @@ import { InteractionHandler, InteractionHandlerTypes } from "@sapphire/framework
 import type { ButtonInteraction } from "discord.js";
 import { Engagement } from "../lib/database";
 import { renderGiveaway } from "../lib/engagement";
+import { MessageFlags } from "discord.js";
 
 // "🎉 Enter" button on giveaways ("giveaway:<id>"): joins, or leaves if already entered.
 export class GiveawayButtonHandler extends InteractionHandler {
@@ -17,11 +18,11 @@ export class GiveawayButtonHandler extends InteractionHandler {
 
     public async run(interaction: ButtonInteraction, id: number) {
         const result = await Engagement.toggleGiveawayEntry(id, interaction.user.id);
-        if (result.state === "ended") return interaction.reply({ content: "This giveaway has ended.", ephemeral: true });
+        if (result.state === "ended") return interaction.reply({ content: "This giveaway has ended.", flags: MessageFlags.Ephemeral });
 
         await interaction.reply({
             content: result.state === "joined" ? "🎉 You're entered! Good luck." : "You left the giveaway.",
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
 
         // Refresh the entry count on the message.

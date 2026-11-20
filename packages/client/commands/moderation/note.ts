@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
 import { DBManager } from "../../lib/database";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -33,7 +33,7 @@ export class NoteCommand extends VortexCommand {
             case "add": {
                 const user = ctx.options.getUser("user", true);
                 const note = await DBManager.addNote(guildId, user.id, ctx.user.id, ctx.options.getString("text", true));
-                return ctx.reply({ content: `📝 Note #${note.id} added for ${user.tag}.`, ephemeral: true });
+                return ctx.reply({ content: `📝 Note #${note.id} added for ${user.tag}.`, flags: MessageFlags.Ephemeral });
             }
             case "list": {
                 const user = ctx.options.getUser("user", true);
@@ -43,11 +43,11 @@ export class NoteCommand extends VortexCommand {
                 if (!notes.length) embed.setDescription("No notes yet.");
                 for (const n of notes) embed.addField(`#${n.id} · ${time(n.createdAt, "d")}`, `${n.content}\n— <@${n.authorId}>`);
 
-                return ctx.reply({ embeds: [embed], ephemeral: true });
+                return ctx.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             }
             case "remove": {
                 const removed = await DBManager.removeNote(guildId, ctx.options.getInteger("id", true));
-                return ctx.reply({ content: removed ? "Note deleted." : "There's no note with that number here.", ephemeral: true });
+                return ctx.reply({ content: removed ? "Note deleted." : "There's no note with that number here.", flags: MessageFlags.Ephemeral });
             }
         }
     }

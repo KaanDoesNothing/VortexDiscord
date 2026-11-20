@@ -1,8 +1,9 @@
-import { and, count, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "./client";
 import { commandLogs, guildMembers, guilds, modLogs, modNotes, users, type ModLogType } from "./schema";
 import { readSettings, type GuildSettings } from "../settings";
 import { guildCache } from "./cache";
+import { setBranding } from "../structures/context";
 
 export { db, runMigrations } from "./client";
 export * as tables from "./schema";
@@ -35,7 +36,10 @@ class Manager {
     async getGuildConfig(id: string): Promise<{ prefix: string; disabledCommands: string[]; settings: GuildSettings }> {
         return guildCache.get(id, async () => {
             const row = await this.getGuild(id);
-            return { prefix: row.prefix, disabledCommands: row.disabledCommands, settings: readSettings(row.settings) };
+            const settings = readSettings(row.settings);
+            // Embeds read branding synchronously; keep it as fresh as the cached settings.
+            setBranding(id, settings.branding);
+            return { prefix: row.prefix, disabledCommands: row.disabledCommands, settings };
         });
     }
 
@@ -72,68 +76,6 @@ class Manager {
         return created ?? (await db.select().from(users).where(eq(users.id, id)).limit(1))[0]!;
     }
 
-    /**
-     * Adds `delta` (can be negative) to a balance, but only if the user has at least `requireAtLeast`.
-     * Returns the new balance, or null if they couldn't afford it.
-     */
-    async adjustBalance(id: string, delta: number, requireAtLeast = 0) {
-        await this.getUser(id);
-
-        const [row] = await db.update(users)
-            .set({ balance: sql`${users.balance} + ${delta}` })
-            .where(and(eq(users.id, id), sql`${users.balance} >= ${requireAtLeast}`))
-            .returning({ balance: users.balance });
-
-        return row?.balance ?? null;
-    }
-
-    /** Moves coins between users in one transaction. Returns false if the sender can't afford it. */
-    async transfer(fromId: string, toId: string, amount: number) {
-        await Promise.all([this.getUser(fromId), this.getUser(toId)]);
-
-        return db.transaction(async (tx) => {
-            const [sender] = await tx.update(users)
-                .set({ balance: sql`${users.balance} - ${amount}` })
-                .where(and(eq(users.id, fromId), sql`${users.balance} >= ${amount}`))
-                .returning({ id: users.id });
-
-            if (!sender) return false;
-
-            await tx.update(users).set({ balance: sql`${users.balance} + ${amount}` }).where(eq(users.id, toId));
-            return true;
-        });
-    }
-
-    /** Pays the daily reward if the cooldown has passed. Otherwise returns when it can be claimed next. */
-    /**
-     * Pays the daily reward if the cooldown has passed, otherwise returns when it can be claimed next.
-     * Claiming again within twice the cooldown continues the streak; each streak day adds
-     * `streakBonus` (up to 10 days). Missing a day resets the streak to 1.
-     */
-    async claimDaily(id: string, reward: number, cooldownMs: number, streakBonus = 0) {
-        const user = await this.getUser(id);
-
-        // Computed in SQL from the stored values, so concurrent claims can't both succeed.
-        const continues = sql`(${users.dailyClaimedAt} IS NOT NULL AND ${users.dailyClaimedAt} > now() - ${cooldownMs * 2} * interval '1 millisecond')`;
-        const newStreak = sql`CASE WHEN ${continues} THEN ${users.dailyStreak} + 1 ELSE 1 END`;
-        const payout = sql`${reward} + ${streakBonus} * LEAST(${newStreak} - 1, 10)`;
-
-        const [row] = await db.update(users)
-            .set({ balance: sql`${users.balance} + ${payout}`, dailyStreak: newStreak, dailyClaimedAt: sql`now()` })
-            .where(and(
-                eq(users.id, id),
-                sql`(${users.dailyClaimedAt} IS NULL OR ${users.dailyClaimedAt} <= now() - ${cooldownMs} * interval '1 millisecond')`
-            ))
-            .returning({ balance: users.balance, streak: users.dailyStreak });
-
-        if (row) {
-            const paid = reward + streakBonus * Math.min(row.streak - 1, 10);
-            return { claimed: true as const, balance: row.balance, streak: row.streak, paid };
-        }
-
-        return { claimed: false as const, nextClaimAt: new Date(user.dailyClaimedAt!.getTime() + cooldownMs), streak: user.dailyStreak };
-    }
-
     async setBio(id: string, bio: string) {
         await db.insert(users).values({ id, bio }).onConflictDoUpdate({ target: users.id, set: { bio } });
     }
@@ -158,38 +100,41 @@ class Manager {
         return created ?? (await db.select().from(guildMembers).where(where).limit(1))[0]!;
     }
 
-    /**
-     * Counts a message toward leveling. Returns the new level if this message leveled the member up.
-     * Levels never go down (e.g. if messagesPerLevel is raised later).
-     */
-    async addMessage(guildId: string, userId: string, messagesPerLevel: number) {
-        const [row] = await db.insert(guildMembers)
-            .values({ guildId, userId, messages: 1, level: 1 })
-            .onConflictDoUpdate({
-                target: [guildMembers.guildId, guildMembers.userId],
-                set: {
-                    messages: sql`${guildMembers.messages} + 1`,
-                    level: sql`GREATEST(${guildMembers.level}, FLOOR((${guildMembers.messages} + 1) / ${messagesPerLevel}::numeric)::int + 1)`
-                }
-            })
-            .returning({ level: guildMembers.level, messages: guildMembers.messages });
-
-        const computed = Math.floor(row!.messages / messagesPerLevel) + 1;
-        const leveledUp = row!.messages % messagesPerLevel === 0 && row!.level === computed && computed > 1;
-        return leveledUp ? row!.level : null;
-    }
-
     // ---------- Logs ----------
 
+    // Records a moderation action. Returns its case number.
     async addModLog(entry: { guildId: string; type: ModLogType; moderatorId: string; targetId: string; reason?: string }) {
-        await db.insert(modLogs).values(entry);
+        const [row] = await db.insert(modLogs).values(entry).returning({ id: modLogs.id });
+        return row!.id;
     }
 
     // How many actions of a type a user has received in a server (used for warning thresholds).
-    async countModLogs(guildId: string, targetId: string, type: ModLogType) {
+    // With withinDays > 0, only actions from that many days back count (expiring warnings).
+    async countModLogs(guildId: string, targetId: string, type: ModLogType, withinDays = 0) {
         const [row] = await db.select({ total: count() }).from(modLogs)
-            .where(and(eq(modLogs.guildId, guildId), eq(modLogs.targetId, targetId), eq(modLogs.type, type)));
+            .where(and(
+                eq(modLogs.guildId, guildId), eq(modLogs.targetId, targetId), eq(modLogs.type, type),
+                withinDays > 0 ? gte(modLogs.createdAt, new Date(Date.now() - withinDays * 86_400_000)) : undefined
+            ));
         return row?.total ?? 0;
+    }
+
+    // ---------- Cases ----------
+
+    async getCase(guildId: string, id: number) {
+        const [row] = await db.select().from(modLogs).where(and(eq(modLogs.guildId, guildId), eq(modLogs.id, id))).limit(1);
+        return row ?? null;
+    }
+
+    async updateCaseReason(guildId: string, id: number, reason: string) {
+        const [row] = await db.update(modLogs).set({ reason }).where(and(eq(modLogs.guildId, guildId), eq(modLogs.id, id))).returning();
+        return row ?? null;
+    }
+
+    // Deleting a warning's case also takes it off the member's warning count.
+    async deleteCase(guildId: string, id: number) {
+        const rows = await db.delete(modLogs).where(and(eq(modLogs.guildId, guildId), eq(modLogs.id, id))).returning({ id: modLogs.id });
+        return rows.length > 0;
     }
 
     // ---------- Mod notes ----------
@@ -222,9 +167,25 @@ class Manager {
             .limit(options.limit ?? 25);
     }
 
+    // Command logs are queued and written in batches (one INSERT every few seconds instead of one
+    // per command). The dashboard's command log can lag by up to LOG_FLUSH_MS.
+    private logQueue: (typeof commandLogs.$inferInsert)[] = [];
+    private logTimer: Timer | null = null;
+
     async logCommand(entry: { guildId: string | null; userId: string; command: string; parameters?: string; slash?: boolean }) {
-        await db.insert(commandLogs).values(entry);
+        this.logQueue.push({ ...entry, parameters: (entry.parameters ?? "").slice(0, 1000), createdAt: new Date() });
+        if (this.logQueue.length >= 200) await this.flushCommandLogs();
+        else this.logTimer ??= setTimeout(() => void this.flushCommandLogs(), LOG_FLUSH_MS);
+    }
+
+    async flushCommandLogs() {
+        if (this.logTimer) clearTimeout(this.logTimer);
+        this.logTimer = null;
+        const batch = this.logQueue.splice(0);
+        if (batch.length) await db.insert(commandLogs).values(batch).catch(() => null);
     }
 }
+
+const LOG_FLUSH_MS = 5_000;
 
 export const DBManager = new Manager();

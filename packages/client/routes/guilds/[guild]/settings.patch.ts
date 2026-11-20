@@ -44,6 +44,13 @@ export class GuildSettingsRoute extends ApiRoute {
             const result = resolveSettings(body.settings, current.settings);
             errors.push(...result.errors);
             update.settings = result.settings;
+
+            // Aliases must point at a real command and not hide one.
+            const commands = this.container.stores.get("commands");
+            for (const { alias, command } of result.settings.aliases) {
+                if (!commands.has(command)) errors.push(`Alias "${alias}": there's no command called "${command}"`);
+                if (commands.has(alias) || commands.aliases.has(alias)) errors.push(`Alias "${alias}" is already a command name`);
+            }
         }
 
         if (errors.length) return res.status(HttpCodes.BadRequest).json({ error: errors.join(". "), errors });

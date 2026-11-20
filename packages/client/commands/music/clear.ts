@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { MusicCommand } from "../../lib/music/command";
 import { requesterOf } from "../../lib/music/format";
 
@@ -24,7 +24,7 @@ export class ClearQueueCommand extends MusicCommand {
         const indexes = player.queue.tracks
             .map((t, i) => (!mine || requesterOf(t)?.id === ctx.user.id ? i : -1))
             .filter((i) => i >= 0);
-        if (!indexes.length) return ctx.reply({ content: mine ? "You don't have any songs queued." : "The queue is already empty.", ephemeral: true });
+        if (!indexes.length) return ctx.reply({ content: mine ? "You don't have any songs queued." : "The queue is already empty.", flags: MessageFlags.Ephemeral });
 
         await player.queue.remove(indexes);
         return ctx.reply({ content: `🧹 Removed ${indexes.length} song${indexes.length === 1 ? "" : "s"}${mine ? " you added" : ""}.` });

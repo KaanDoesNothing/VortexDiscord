@@ -4,6 +4,7 @@ import type { Track } from "lavalink-client";
 import * as Music from "../lib/music/actions";
 import { checkDj, checkMusicAvailable, checkVoice, getActivePlayer } from "../lib/music/guards";
 import { nowPlayingEmbed, controlRows, queueEmbed } from "../lib/music/ui";
+import { MessageFlags } from "discord.js";
 
 // Buttons under the now-playing card ("music:<action>"). Same rules as the slash commands:
 // you must be in the bot's channel, and controlling other people's music needs DJ rights.
@@ -20,7 +21,7 @@ export class MusicButtonHandler extends InteractionHandler {
 
     public async run(interaction: ButtonInteraction, action: string) {
         if (!interaction.inCachedGuild()) return;
-        const fail = (content: string) => interaction.reply({ content, ephemeral: true });
+        const fail = (content: string) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
 
         const available = await checkMusicAvailable(interaction.guildId);
         if ("error" in available) return fail(available.error);
@@ -33,7 +34,7 @@ export class MusicButtonHandler extends InteractionHandler {
         }
 
         // Anyone can look at the queue.
-        if (action === "queue") return interaction.reply({ embeds: [queueEmbed(player, 1)], ephemeral: true });
+        if (action === "queue") return interaction.reply({ embeds: [queueEmbed(player, 1)], flags: MessageFlags.Ephemeral });
 
         const member = interaction.member as GuildMember;
         const voice = checkVoice(member, player);
@@ -65,6 +66,6 @@ export class MusicButtonHandler extends InteractionHandler {
         } else {
             await interaction.deferUpdate().catch(() => null);
         }
-        await interaction.followUp({ content: `${message} · by ${member.displayName}`, ephemeral: false, allowedMentions: { parse: [] } }).catch(() => null);
+        await interaction.followUp({ content: `${message} · by ${member.displayName}`, allowedMentions: { parse: [] } }).catch(() => null);
     }
 }

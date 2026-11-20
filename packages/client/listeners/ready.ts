@@ -3,6 +3,14 @@ import type { Client } from "discord.js";
 import { ensureBirthdaySweep } from "../lib/engagement";
 import { applyPresence, isBlacklisted, loadBlacklist, loadDisabledCommands, loadOwners, loadPresence } from "../lib/owner";
 import { startScheduler } from "../lib/scheduler";
+import { startLeveling } from "../lib/leveling";
+import { startPhishingRefresh } from "../lib/automod";
+import { restoreLockdowns } from "../lib/antiraid";
+import { snapshotAllInvites } from "../lib/invites";
+import { startFeeds } from "../lib/feeds";
+import { startBotListStats } from "../lib/botlists";
+import { startStatsChannels } from "../lib/statsChannels";
+import { cleanupTempChannels } from "../lib/tempVoice";
 import { initMusic } from "../lib/music/manager";
 
 // Make sure every scheduled-task handler is registered before the scheduler starts.
@@ -27,6 +35,18 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
         }
 
         startScheduler();
+        // Batched XP saving and voice XP.
+        startLeveling();
+        // Phishing domain list for auto-mod, running raid lockdowns, and invite tracking.
+        startPhishingRefresh();
+        await restoreLockdowns().catch((error) => logger.warn("Couldn't restore lockdowns:", error));
+        void snapshotAllInvites();
+        // Social feeds, stats channel renames, and temp voice channels left over from a restart.
+        startFeeds();
+        startStatsChannels();
+        // Server counts for top.gg / discordbotlist.com (only if their tokens are set).
+        startBotListStats();
+        await cleanupTempChannels().catch((error) => logger.warn("Couldn't clean up temp voice channels:", error));
         // Connect to the music node (NodeLink) now that the bot knows its own user ID.
         await initMusic().catch((error) => logger.error("Couldn't start music:", error));
         await ensureBirthdaySweep().catch((error) => logger.warn("Couldn't schedule the birthday sweep:", error));

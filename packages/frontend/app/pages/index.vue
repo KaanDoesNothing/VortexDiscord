@@ -11,7 +11,7 @@
                 {{ client?.username ?? "Vortex" }}
             </h1>
             <p class="mt-4 max-w-2xl text-lg text-zinc-400">
-                One bot for moderation, auto-mod, economy games, leveling, giveaways, tickets and more, all set up from a simple web dashboard.
+                The only bot your server needs: moderation, anti-raid, leveling, economy, tickets, feeds, music and more. Every part customizable from a simple web dashboard.
             </p>
 
             <div class="mt-8 flex flex-wrap justify-center gap-3">
@@ -81,7 +81,7 @@ const { data: stats } = await useStatistics();
 const { data: commands } = await useCommands();
 
 const inviteUrl = computed(() =>
-    `https://discord.com/oauth2/authorize?client_id=${client.value?.id}&scope=bot+applications.commands&permissions=1099793034326`);
+    `https://discord.com/oauth2/authorize?client_id=${client.value?.id}&scope=bot+applications.commands&permissions=1409184820470`);
 
 const compact = (n: number) => new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 const statCards = computed(() => stats.value ? [
@@ -98,20 +98,23 @@ const categories = computed(() => {
 });
 
 const features = [
-    { icon: "🛡️", title: "Moderation", text: "Warn, timeout, kick, (temp)ban, lock channels, slowmode and private mod notes, with a full log." },
-    { icon: "🤖", title: "Auto-mod", text: "Blocks bad words, invite links, spam and mass mentions, with automatic punishments at warning limits." },
-    { icon: "💰", title: "Economy & games", text: "Daily streaks, work, crime, robbing, a bank, plus blackjack, slots, high/low and trivia." },
-    { icon: "📈", title: "Leveling & rewards", text: "Members level up by chatting and earn roles. Rank cards, leaderboards and level-up messages." },
-    { icon: "🎉", title: "Giveaways & polls", text: "Button giveaways that end on time, and live polls with results bars." },
-    { icon: "🎫", title: "Tickets & suggestions", text: "Private support tickets with transcripts, and a suggestion box members can vote on." },
-    { icon: "👋", title: "Welcome & roles", text: "Welcome cards, auto-roles, self-assign role buttons and birthday announcements." },
-    { icon: "🔎", title: "Lookup & news", text: "Weather, Wikipedia, crypto, currency, GitHub, npm, anime and tech headlines." },
-    { icon: "🧭", title: "Web dashboard", text: "Configure everything in your browser: custom commands, logs, announcements and more." }
+    { icon: "🛡️", title: "Moderation", text: "Warn, timeout, kick, softban, massban, cases, notes and DMs to punished members, with a full log." },
+    { icon: "🤖", title: "Auto-mod", text: "Phishing links, invites, spam, duplicates, caps, emoji spam, zalgo and bad words, each with its own punishment." },
+    { icon: "🚨", title: "Anti-raid & verification", text: "Automatic lockdowns during join floods, minimum account age, and button or captcha verification." },
+    { icon: "📈", title: "XP leveling", text: "XP for chatting and voice, role and channel multipliers, role rewards, custom rank cards and a public leaderboard." },
+    { icon: "💰", title: "Economy & shop", text: "Shared or per-server economy with tunable payouts, a role & item shop, inventories and casino games." },
+    { icon: "👋", title: "Welcome & roles", text: "Welcome cards and embeds, welcome DMs, auto-roles, button/menu role panels and reaction roles." },
+    { icon: "🎫", title: "Tickets", text: "Ticket types with forms, claiming, and HTML transcripts. Plus suggestions, polls and giveaways." },
+    { icon: "📺", title: "Social feeds", text: "Post new YouTube videos, Twitch streams, Reddit posts and RSS items automatically." },
+    { icon: "🔊", title: "Voice & channels", text: "Join-to-create voice channels, live stats channels, sticky messages and autoresponders." },
+    { icon: "🎵", title: "Music", text: "Play from YouTube, Spotify and SoundCloud with filters, autoplay, lyrics and a 24/7 mode." },
+    { icon: "📝", title: "Logs", text: "Messages, members, roles, voice, server changes, bans and invites, each to its own channel." },
+    { icon: "🧭", title: "Web dashboard", text: "Configure everything in your browser, brand the bot with your colors, and copy setups between servers." }
 ];
 
 const steps = [
     { title: "Add the bot", text: "Invite it to your server with one click." },
     { title: "Open the dashboard", text: "Log in with Discord and pick your server." },
-    { title: "Turn things on", text: "Enable the features you want and make them yours." }
+    { title: "Pick a preset", text: "Run /setup, then fine-tune anything in the dashboard." }
 ];
 </script>

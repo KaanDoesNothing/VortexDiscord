@@ -3,6 +3,8 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
     time,
     type Guild,
     type Message,
@@ -11,7 +13,7 @@ import {
 } from "discord.js";
 import { DBManager, Engagement, type Giveaway, type Poll, type RolePanel } from "./database";
 import { registerTask, schedule } from "./scheduler";
-import { renderTemplate } from "./settings";
+import { memberContext, renderMessage } from "./messages";
 import { VortexEmbed } from "./structures/embed";
 
 // Shared logic for role panels, giveaways, polls, starboard and birthdays.
@@ -19,10 +21,28 @@ import { VortexEmbed } from "./structures/embed";
 
 // ---------- Role panels ----------
 
-// Builds (or rebuilds) a role panel message: an embed plus up to 25 buttons, 5 per row.
+// Builds (or rebuilds) a role panel message: an embed plus up to 25 buttons (5 per row), or a
+// dropdown menu with the panel's roles.
 export function renderRolePanel(panel: RolePanel) {
-    const embed = new VortexEmbed().setTitle(panel.title).setDescription(panel.description || null)
-        .setFooter({ text: panel.mode === "single" ? "Pick one: choosing a role removes the others" : "Click a button to add or remove the role" });
+    const select = panel.style === "select";
+    const embed = new VortexEmbed(panel.guildId).setTitle(panel.title).setDescription(panel.description || null)
+        .setFooter({ text: panel.mode === "single"
+            ? "Pick one: choosing a role removes the others"
+            : select ? "Pick the roles you want from the menu; unpick them to remove" : "Click a button to add or remove the role" });
+
+    if (select) {
+        const menu = new StringSelectMenuBuilder()
+            .setCustomId(`rolepanel:${panel.id}:menu`)
+            .setPlaceholder(panel.mode === "single" ? "Choose a role…" : "Choose your roles…")
+            .setMinValues(0)
+            .setMaxValues(panel.mode === "single" ? 1 : Math.max(1, Math.min(25, panel.roles.length)))
+            .addOptions(panel.roles.slice(0, 25).map((r) => {
+                const option = new StringSelectMenuOptionBuilder().setLabel(r.label.slice(0, 100)).setValue(r.roleId);
+                if (r.emoji) option.setEmoji(r.emoji);
+                return option;
+            }));
+        return { embeds: [embed], components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)] };
+    }
 
     const rows: ActionRowBuilder<ButtonBuilder>[] = [];
     panel.roles.slice(0, 25).forEach((r, i) => {
@@ -196,6 +216,10 @@ export async function updateStarboard(reaction: MessageReaction | PartialMessage
 
     const { starboard } = (await DBManager.getGuildConfig(message.guildId)).settings;
     if (!starboard.enabled || !starboard.channelId || message.channelId === starboard.channelId) return;
+    const parentId = message.channel.isThread() ? message.channel.parentId : null;
+    if (starboard.ignoredChannelIds.includes(message.channelId) || (parentId && starboard.ignoredChannelIds.includes(parentId))) return;
+    // Age-restricted messages stay off the starboard unless allowed (or the starboard is age-restricted too).
+    const nsfw = "nsfw" in message.channel && message.channel.nsfw;
 
     // Only the configured emoji (unicode or custom <:name:id>) counts.
     const matches = (r: MessageReaction) => r.emoji.id ? starboard.emoji.includes(r.emoji.id) : r.emoji.name === starboard.emoji;
@@ -207,8 +231,9 @@ export async function updateStarboard(reaction: MessageReaction | PartialMessage
         if (users?.has(message.author.id)) stars--;
     }
 
-    const channel = await message.guild.channels.fetch(starboard.channelId).catch(() => null);
+    const channel = message.guild.channels.cache.get(starboard.channelId) ?? await message.guild.channels.fetch(starboard.channelId).catch(() => null);
     if (!channel?.isSendable() || !channel.isTextBased()) return;
+    if (nsfw && !starboard.allowNsfw && !("nsfw" in channel && channel.nsfw)) return;
 
     const entry = await Engagement.getStarboardEntry(message.guildId, message.id);
     const existing = entry ? await channel.messages.fetch(entry.starboardMessageId).catch(() => null) : null;
@@ -263,11 +288,8 @@ registerTask("birthday_sweep", async () => {
         const members = await Promise.all(userIds.map((id) => guild.members.fetch(id).catch(() => null)));
         for (const member of members) {
             if (!member) continue;
-            const content = renderTemplate(birthdays.message, {
-                user: { id: member.id, username: member.user.username, displayName: member.displayName },
-                server: { name: guild.name, memberCount: guild.memberCount }
-            });
-            await channel.send({ content, allowedMentions: { users: [member.id] } }).catch(() => null);
+            const payload = renderMessage(birthdays.message, memberContext(member), guild.id);
+            await channel.send({ ...payload, allowedMentions: { users: [member.id] } }).catch(() => null);
         }
     }
 });

@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { pick } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
@@ -17,7 +17,7 @@ export class ChooseCommand extends VortexCommand {
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const raw = ctx.options.getString("options", true);
         const options = raw.split(raw.includes("|") ? "|" : ",").map((o) => o.trim()).filter(Boolean);
-        if (options.length < 2) return ctx.reply({ content: "Give at least two options, separated by `|` or `,`.", ephemeral: true });
+        if (options.length < 2) return ctx.reply({ content: "Give at least two options, separated by `|` or `,`.", flags: MessageFlags.Ephemeral });
 
         return ctx.reply({ content: `🤔 I choose… **${pick(options)}**!`, allowedMentions: { parse: [] } });
     }

@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
-import { DBManager, Economy } from "../../lib/database";
-import { ECONOMY, getCurrency, pick, randomInt } from "../../lib/economy";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
+import { economyFor, pick, randomInt } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
 const GENEROUS = ["A kind stranger", "A passing millionaire", "Your grandma", "A friendly ghost", "A confused tourist", "The server owner"];
@@ -20,16 +19,18 @@ export class BegCommand extends VortexCommand {
         .setDescription("Beg strangers for a few coins (might not work)");
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const { min, max, chance, cooldownMs } = ECONOMY.beg;
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
+        const { min, max, cooldownMinutes } = eco.config.beg;
+        const chance = eco.config.beg.chance / 100;
+        const cooldownMs = cooldownMinutes * 60_000;
 
-        const claim = await Economy.claimCooldown(ctx.user.id, "beg", cooldownMs);
-        if (!claim.ok) return ctx.reply({ content: `🙈 People are avoiding you. Try again ${time(claim.readyAt, "R")}.`, ephemeral: true });
+        const claim = await eco.claimCooldown(ctx.user.id, "beg", cooldownMs);
+        if (!claim.ok) return ctx.reply({ content: `🙈 People are avoiding you. Try again ${time(claim.readyAt, "R")}.`, flags: MessageFlags.Ephemeral });
 
         if (Math.random() > chance) return ctx.reply({ content: `🥺 ${pick(REJECTIONS)}` });
 
         const amount = randomInt(min, max);
-        await DBManager.adjustBalance(ctx.user.id, amount);
-        return ctx.reply({ content: `🙏 ${pick(GENEROUS)} gave you ${currency.format(amount)}.` });
+        await eco.adjust(ctx.user.id, amount);
+        return ctx.reply({ content: `🙏 ${pick(GENEROUS)} gave you ${eco.format(amount)}.` });
     }
 }

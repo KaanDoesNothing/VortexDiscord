@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /purge <amount> [user]: bulk-deletes recent messages, optionally only from one user.
@@ -25,9 +25,9 @@ export class PurgeCommand extends VortexCommand {
         const user = ctx.options.getUser("user");
         const channel = ctx.channel;
 
-        if (!channel || !("bulkDelete" in channel)) return ctx.reply({ content: "I can't purge messages here.", ephemeral: true });
+        if (!channel || !("bulkDelete" in channel)) return ctx.reply({ content: "I can't purge messages here.", flags: MessageFlags.Ephemeral });
 
-        await ctx.deferReply({ ephemeral: true });
+        await ctx.deferReply({ flags: MessageFlags.Ephemeral });
 
         // For prefix usage, also remove the "->purge" message itself.
         const isPrefix = (ctx as unknown as { isPollyFilled?: boolean }).isPollyFilled;

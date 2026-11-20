@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
-import { DBManager, Economy } from "../../lib/database";
-import { getCurrency, parseAmount } from "../../lib/economy";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { economyFor, parseAmount } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /withdraw <amount|all>: take coins out of the bank into your wallet.
@@ -16,14 +15,15 @@ export class WithdrawCommand extends VortexCommand {
         .addStringOption((o) => o.setName("amount").setDescription("A number, \"half\" or \"all\"").setRequired(true));
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
-        const [user, currency] = await Promise.all([DBManager.getUser(ctx.user.id), getCurrency(ctx.guildId)]);
+        const eco = await economyFor(ctx.guildId);
+        const user = await eco.wallet(ctx.user.id);
         const amount = parseAmount(ctx.options.getString("amount", true), user.bank);
 
-        if (!amount) return ctx.reply({ content: user.bank ? "Give a positive amount, \"half\" or \"all\"." : "Your bank is empty.", ephemeral: true });
+        if (!amount) return ctx.reply({ content: user.bank ? "Give a positive amount, \"half\" or \"all\"." : "Your bank is empty.", flags: MessageFlags.Ephemeral });
 
-        const result = await Economy.moveToBank(ctx.user.id, -amount);
-        if (!result) return ctx.reply({ content: `You only have ${currency.format(user.bank)} in the bank.`, ephemeral: true });
+        const result = await eco.moveToBank(ctx.user.id, -amount);
+        if (!result) return ctx.reply({ content: `You only have ${eco.format(user.bank)} in the bank.`, flags: MessageFlags.Ephemeral });
 
-        return ctx.reply({ content: `💵 Withdrew ${currency.format(amount)}. Wallet: ${currency.format(result.balance)} · Bank: ${currency.format(result.bank)}` });
+        return ctx.reply({ content: `💵 Withdrew ${eco.format(amount)}. Wallet: ${eco.format(result.balance)} · Bank: ${eco.format(result.bank)}` });
     }
 }

@@ -1,7 +1,8 @@
 import { Command } from "@sapphire/framework";
 import { capitalizeFirstLetter } from "@sapphire/utilities";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { DBManager } from "../../lib/database";
+import { linkButtons } from "../../lib/links";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -23,7 +24,7 @@ export class HelpCommand extends VortexCommand {
         if (query) {
             // Look up by name or alias.
             const command = (store.get(query) ?? store.aliases.get(query)) as VortexCommand | undefined;
-            if (!command?.applicationCommandData) return ctx.reply({ content: `There's no command called \`${query}\`.`, ephemeral: true });
+            if (!command?.applicationCommandData) return ctx.reply({ content: `There's no command called \`${query}\`.`, flags: MessageFlags.Ephemeral });
 
             const embed = new VortexEmbed()
                 .setTitle(`Help: ${command.name}`)
@@ -54,6 +55,7 @@ export class HelpCommand extends VortexCommand {
             embed.addField(category, names.sort().map((n) => `\`${n}\``).join(" "));
         }
 
-        return ctx.reply({ embeds: [embed] });
+        // Invite / dashboard / support links, so people who like the bot can bring it to their own server.
+        return ctx.reply({ embeds: [embed], components: linkButtons(ctx.client, ["invite", "dashboard", "support"], ctx.guildId ?? undefined) });
     }
 }

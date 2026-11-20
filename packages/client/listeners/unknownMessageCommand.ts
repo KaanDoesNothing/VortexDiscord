@@ -14,9 +14,20 @@ export class UnknownMessageCommandListener extends Listener<typeof Events.Unknow
         });
     }
 
-    public async run({ message, commandName, commandPrefix }: UnknownMessageCommandPayload) {
+    public async run({ message, commandName, commandPrefix, prefix }: UnknownMessageCommandPayload) {
         if (!message.inGuild() || message.author.bot) return;
         if (isBlacklisted(message.author.id, message.guildId)) return;
+
+        // Server aliases (Dashboard → Commands → Aliases): run the real command through Sapphire's
+        // normal pipeline, so permissions, cooldowns and channel rules still apply.
+        const { settings: config } = await DBManager.getGuildConfig(message.guildId);
+        const alias = config.aliases.find((a) => a.alias === commandName.toLowerCase());
+        const target = alias ? this.container.stores.get("commands").get(alias.command) : undefined;
+        if (target) {
+            const parameters = message.content.slice(commandPrefix.length + commandName.length).trim();
+            this.container.client.emit(Events.PreMessageCommandRun, { message, command: target as never, parameters, context: { commandName: target.name, commandPrefix, prefix } });
+            return;
+        }
 
         const command = await CustomCommands.findByName(message.guildId, commandName.toLowerCase());
         if (!command) return;

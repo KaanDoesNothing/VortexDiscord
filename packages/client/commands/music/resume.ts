@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import * as Music from "../../lib/music/actions";
 import { MusicCommand } from "../../lib/music/command";
 
@@ -18,7 +18,7 @@ export class ResumeCommand extends MusicCommand {
         if (!ready) return;
         const { player } = ready;
 
-        if (!player.paused) return ctx.reply({ content: "The music isn't paused.", ephemeral: true });
+        if (!player.paused) return ctx.reply({ content: "The music isn't paused.", flags: MessageFlags.Ephemeral });
         return ctx.reply({ content: await Music.togglePause(player) });
     }
 }

@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
-import { auditReason, checkModerationTarget } from "../../lib/moderation";
-import { logModAction, scheduleUnban, sendAppealDm } from "../../lib/modlog";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
+import { auditReason, checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget, scheduleUnban } from "../../lib/modlog";
 import { formatDuration, parseDuration } from "../../lib/scheduler";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /tempban <user> <duration> [reason]: bans now and unbans automatically later (survives restarts).
@@ -25,17 +26,18 @@ export class TempbanCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
+        const member = await fetchMember(ctx.guild!, user.id);
         const durationMs = parseDuration(ctx.options.getString("duration", true));
-        const reason = ctx.options.getString("reason") ?? "None";
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
 
-        if (!durationMs || durationMs < 60_000) return ctx.reply({ content: "Give a duration like `12h`, `1d` or `2w`.", ephemeral: true });
+        if (!durationMs || durationMs < 60_000) return ctx.reply({ content: "Give a duration like `12h`, `1d` or `2w`.", flags: MessageFlags.Ephemeral });
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
-        if (member && !member.bannable) return ctx.reply({ content: `I can't ban ${user.tag}: their role is above mine.`, ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
+        if (member && !member.bannable) return ctx.reply({ content: `I can't ban ${user.tag}: their role is above mine.`, flags: MessageFlags.Ephemeral });
 
-        await sendAppealDm(ctx.guild!, user);
+        await notifyTarget(ctx.guild!, { type: "tempban", moderator: ctx.user, target: user, reason, durationMs });
         await ctx.guild!.bans.create(user.id, { reason: auditReason(ctx.user, `${reason} (temporary: ${formatDuration(durationMs)})`) });
         await scheduleUnban(ctx.guild!, user, durationMs, ctx.user);
         await logModAction(ctx.guild!, { type: "tempban", moderator: ctx.user, target: user, reason, durationMs });

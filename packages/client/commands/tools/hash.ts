@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
 
 // /hash <text> [algorithm]: hash text with MD5, SHA-1, SHA-256 or SHA-512.
@@ -17,6 +17,6 @@ export class HashCommand extends VortexCommand {
         const algorithm = (ctx.options.getString("algorithm") ?? "sha256") as "md5" | "sha1" | "sha256" | "sha512";
 
         const digest = new Bun.CryptoHasher(algorithm).update(text).digest("hex");
-        return ctx.reply({ content: `**${algorithm.toUpperCase()}**\n\`\`\`\n${digest}\n\`\`\``, ephemeral: true });
+        return ctx.reply({ content: `**${algorithm.toUpperCase()}**\n\`\`\`\n${digest}\n\`\`\``, flags: MessageFlags.Ephemeral });
     }
 }

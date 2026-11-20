@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { Engagement } from "../../lib/database";
 import { renderPoll } from "../../lib/engagement";
 import { formatDuration, parseDuration, schedule } from "../../lib/scheduler";
@@ -24,11 +24,11 @@ export class PollCommand extends VortexCommand {
         const options = ctx.options.getString("options", true).split("|").map((o) => o.trim()).filter(Boolean);
         const durationInput = ctx.options.getString("duration");
 
-        if (options.length < 2 || options.length > 10) return ctx.reply({ content: "Give 2 to 10 options separated by `|`, e.g. `Pizza | Tacos`.", ephemeral: true });
-        if (options.some((o) => o.length > 80)) return ctx.reply({ content: "Each option can be at most 80 characters.", ephemeral: true });
+        if (options.length < 2 || options.length > 10) return ctx.reply({ content: "Give 2 to 10 options separated by `|`, e.g. `Pizza | Tacos`.", flags: MessageFlags.Ephemeral });
+        if (options.some((o) => o.length > 80)) return ctx.reply({ content: "Each option can be at most 80 characters.", flags: MessageFlags.Ephemeral });
 
         const durationMs = durationInput ? parseDuration(durationInput) : null;
-        if (durationInput && (!durationMs || durationMs > 30 * 86_400_000)) return ctx.reply({ content: "Give a duration like `1h` or `2d` (max 30d).", ephemeral: true });
+        if (durationInput && (!durationMs || durationMs > 30 * 86_400_000)) return ctx.reply({ content: "Give a duration like `1h` or `2d` (max 30d).", flags: MessageFlags.Ephemeral });
 
         const poll = await Engagement.createPoll({ guildId: ctx.guildId!, channelId: ctx.channelId, question, options, authorId: ctx.user.id });
         const message = await replyAndFetch(ctx, {

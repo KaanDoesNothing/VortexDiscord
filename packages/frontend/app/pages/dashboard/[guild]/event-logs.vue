@@ -26,6 +26,9 @@ const logs = [
     { key: "messages", label: "Deleted & edited messages", hint: "Shows the old content of edited or deleted messages.", needsMembers: false },
     { key: "members", label: "Joins & leaves", hint: "Includes account age, so new raid accounts stand out.", needsMembers: true },
     { key: "roles", label: "Role & nickname changes", hint: "Who got or lost which role, and nickname changes.", needsMembers: true },
-    { key: "voice", label: "Voice activity", hint: "Joining, leaving and moving between voice channels.", needsMembers: false }
+    { key: "voice", label: "Voice activity", hint: "Joining, leaving and moving between voice channels.", needsMembers: false },
+    { key: "server", label: "Server changes", hint: "Channels, roles and emojis being created, deleted or edited, and server settings.", needsMembers: false },
+    { key: "moderation", label: "Bans & unbans", hint: "Including ones done in Discord itself, with who did it (from the audit log).", needsMembers: false },
+    { key: "invites", label: "Invites", hint: "Invites created and deleted, and which invite each new member used.", needsMembers: true }
 ] as const;
 </script>

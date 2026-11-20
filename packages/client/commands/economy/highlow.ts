@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder } from "discord.js";
-import { DBManager } from "../../lib/database";
-import { ECONOMY, getCurrency, randomInt } from "../../lib/economy";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder, MessageFlags } from "discord.js";
+import { ECONOMY, economyFor, randomInt } from "../../lib/economy";
 import { HIGHLOW_MAX, highLowOdds } from "../../lib/games";
 import { replyAndFetch, VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -20,11 +19,14 @@ export class HighLowCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const bet = ctx.options.getInteger("bet", true);
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
+        // The server can turn gambling off or cap bets (Dashboard → Economy).
+        const betProblem = eco.checkBet(bet);
+        if (betProblem) return ctx.reply({ content: betProblem, flags: MessageFlags.Ephemeral });
 
         // Take the bet up front.
-        if (await DBManager.adjustBalance(ctx.user.id, -bet, bet) === null) {
-            return ctx.reply({ content: `You don't have ${currency.format(bet)} to bet.`, ephemeral: true });
+        if (await eco.adjust(ctx.user.id, -bet, bet) === null) {
+            return ctx.reply({ content: `You don't have ${eco.format(bet)} to bet.`, flags: MessageFlags.Ephemeral });
         }
 
         const shown = randomInt(1, HIGHLOW_MAX);
@@ -50,22 +52,22 @@ export class HighLowCommand extends VortexCommand {
 
         // No answer: refund (nothing was decided yet).
         if (!choice) {
-            await DBManager.adjustBalance(ctx.user.id, bet);
-            return message.edit({ embeds: [embed.setDescription(`⏱️ Timed out, your ${currency.format(bet)} was refunded.`)], components: [] }).catch(() => null);
+            await eco.adjust(ctx.user.id, bet);
+            return message.edit({ embeds: [embed.setDescription(`⏱️ Timed out, your ${eco.format(bet)} was refunded.`)], components: [] }).catch(() => null);
         }
 
         const guess = choice.customId as "higher" | "lower";
         const correct = guess === "higher" ? next > shown : next < shown;
         const payout = next === shown ? bet : correct ? Math.floor(bet * odds[guess]) : 0;
-        const balance = payout > 0 ? await DBManager.adjustBalance(ctx.user.id, payout) : (await DBManager.getUser(ctx.user.id)).balance;
+        const balance = payout > 0 ? await eco.adjust(ctx.user.id, payout) : (await eco.wallet(ctx.user.id)).balance;
 
         const outcome = next === shown
             ? "🤝 Same number! Your bet is refunded."
-            : correct ? `✅ Correct! You won ${currency.format(payout)}.` : `❌ Wrong! You lost ${currency.format(bet)}.`;
+            : correct ? `✅ Correct! You won ${eco.format(payout)}.` : `❌ Wrong! You lost ${eco.format(bet)}.`;
 
         return choice.update({
             embeds: [embed
-                .setDescription(`It was **${shown}** → **${next}**. You guessed **${guess}**.\n${outcome}\nWallet: ${currency.format(balance ?? 0)}`)
+                .setDescription(`It was **${shown}** → **${next}**. You guessed **${guess}**.\n${outcome}\nWallet: ${eco.format(balance ?? 0)}`)
                 .setColor(payout > bet ? 0x30a46c : payout === bet ? 0x8e8c99 : 0xe5484d)],
             components: []
         });

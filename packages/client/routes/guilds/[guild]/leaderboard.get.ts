@@ -2,7 +2,8 @@ import { Route } from "@sapphire/plugin-api";
 import { ApiRoute } from "../../../lib/api/ApiRoute";
 import { requireGuildManager } from "../../../lib/api/auth";
 import { getPage, resolveUsers } from "../../../lib/api/http";
-import { Dashboard } from "../../../lib/database";
+import { DBManager, Dashboard } from "../../../lib/database";
+import { levelFromXp } from "../../../lib/leveling";
 
 /** GET /guilds/:guild/leaderboard?page= */
 export class GuildLeaderboardRoute extends ApiRoute {
@@ -11,7 +12,7 @@ export class GuildLeaderboardRoute extends ApiRoute {
         if (!access) return;
 
         const page = getPage(req);
-        const { rows, total } = await Dashboard.getLeaderboard(access.guild.id, page);
+        const [{ rows, total }, { settings }] = await Promise.all([Dashboard.getLeaderboard(access.guild.id, page), DBManager.getGuildConfig(access.guild.id)]);
         const users = await resolveUsers(rows.map((row) => row.userId));
         const start = (page.page - 1) * page.limit;
 
@@ -22,8 +23,10 @@ export class GuildLeaderboardRoute extends ApiRoute {
             rows: rows.map((row, i) => ({
                 rank: start + i + 1,
                 userId: row.userId,
-                level: row.level,
-                messages: row.messages
+                level: levelFromXp(row.xp, settings.leveling.difficulty),
+                xp: row.xp,
+                messages: row.messages,
+                voiceMinutes: row.voiceMinutes
             }))
         });
     }

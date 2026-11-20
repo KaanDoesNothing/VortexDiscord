@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { Canvas } from "canvas-constructor/cairo";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -47,7 +47,7 @@ export class ColorCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const rgb = parseColor(ctx.options.getString("color", true));
-        if (!rgb) return ctx.reply({ content: "Use a hex code like `#ff8800`, `rgb(255, 136, 0)` or `random`.", ephemeral: true });
+        if (!rgb) return ctx.reply({ content: "Use a hex code like `#ff8800`, `rgb(255, 136, 0)` or `random`.", flags: MessageFlags.Ephemeral });
 
         const hex = `#${rgb.map((n) => n.toString(16).padStart(2, "0")).join("")}`;
         const [h, s, l] = toHsl(rgb);

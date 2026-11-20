@@ -67,24 +67,33 @@ export async function renderWelcomeCard(user: User, serverName: string, memberCo
         .pngAsync();
 }
 
-// /rank card: avatar, level, rank and a progress bar to the next level.
-export async function renderRankCard(input: { user: User; level: number; rank: number | null; progress: number; current: number; needed: number }) {
-    const avatar = await avatarOf(input.user);
+// /rank card: avatar, level, rank and a progress bar to the next level. The accent color and
+// background image come from the server's settings (Dashboard → Leveling → Rank card).
+export async function renderRankCard(input: { user: User; level: number; rank: number | null; progress: number; current: number; needed: number; accent?: string; backgroundUrl?: string }) {
+    const accent = input.accent || "#7c7af5";
+    const [avatar, background] = await Promise.all([
+        avatarOf(input.user),
+        input.backgroundUrl ? loadImage(input.backgroundUrl).catch(() => null) : null
+    ]);
     const name = input.user.displayName.length > 20 ? `${input.user.displayName.slice(0, 19)}…` : input.user.displayName;
     const barX = 290, barY = 200, barW = 660, barH = 36;
     const filled = Math.max(barH, Math.round(barW * Math.min(1, Math.max(0, input.progress))));
 
-    return cardBackground(1000, 300)
-        .setColor("#6d6af0").printCircle(150, 150, 106)
+    let canvas = cardBackground(1000, 300);
+    // Custom background, darkened so the text stays readable.
+    if (background) canvas = canvas.printImage(background, 0, 0, 1000, 300).setColor("rgba(9, 9, 11, 0.55)").printRectangle(0, 0, 1000, 300);
+
+    return canvas
+        .setColor(accent).printCircle(150, 150, 106)
         .printCircularImage(avatar, 150, 150, 100)
         .setTextAlign("left")
         .setColor("#fafafa").setTextFont(`bold 44px ${FONT}`).printText(name, barX, 178, barW)
         .setTextAlign("right")
         .setColor("#a1a1aa").setTextFont(`28px ${FONT}`).printText(input.rank ? `RANK #${input.rank}` : "", 950, 70)
-        .setColor("#8b8cf8").setTextFont(`bold 44px ${FONT}`).printText(`LEVEL ${input.level}`, 950, 118)
+        .setColor(accent).setTextFont(`bold 44px ${FONT}`).printText(`LEVEL ${input.level}`, 950, 118)
         // Progress bar track and fill.
         .setColor("#3f3f46").printRoundedRectangle(barX, barY, barW, barH, barH / 2)
-        .setColor("#7c7af5").printRoundedRectangle(barX, barY, filled, barH, barH / 2)
-        .setColor("#a1a1aa").setTextFont(`24px ${FONT}`).printText(`${input.current.toLocaleString("en-US")} / ${input.needed.toLocaleString("en-US")} messages`, 950, 270)
+        .setColor(accent).printRoundedRectangle(barX, barY, filled, barH, barH / 2)
+        .setColor("#a1a1aa").setTextFont(`24px ${FONT}`).printText(`${input.current.toLocaleString("en-US")} / ${input.needed.toLocaleString("en-US")} XP`, 950, 270)
         .pngAsync();
 }

@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { Utility } from "../../lib/database";
 import { renderSuggestion, type SuggestionStatus } from "../../lib/utility";
 import { VortexCommand } from "../../lib/structures/command";
@@ -29,7 +29,7 @@ export class ReviewSuggestionCommand extends VortexCommand {
         const response = ctx.options.getString("response");
 
         const s = await Utility.setSuggestionStatus(ctx.guildId!, id, status, response);
-        if (!s) return ctx.reply({ content: `There's no suggestion #${id} here.`, ephemeral: true });
+        if (!s) return ctx.reply({ content: `There's no suggestion #${id} here.`, flags: MessageFlags.Ephemeral });
 
         // Update the posted suggestion.
         const channel = ctx.guild!.channels.cache.get(s.channelId);
@@ -42,6 +42,6 @@ export class ReviewSuggestionCommand extends VortexCommand {
         const author = await ctx.client.users.fetch(s.authorId).catch(() => null);
         await author?.send(`Your suggestion #${s.id} in **${ctx.guild!.name}** was marked **${status}**.${response ? `\n> ${response}` : ""}`).catch(() => null);
 
-        return ctx.reply({ content: `Suggestion #${id} is now **${status}**.`, ephemeral: true });
+        return ctx.reply({ content: `Suggestion #${id} is now **${status}**.`, flags: MessageFlags.Ephemeral });
     }
 }

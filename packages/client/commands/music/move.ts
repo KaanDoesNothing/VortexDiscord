@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import * as Music from "../../lib/music/actions";
 import { MusicCommand } from "../../lib/music/command";
 import { trackLink } from "../../lib/music/format";
@@ -20,7 +20,7 @@ export class MoveCommand extends MusicCommand {
         const from = ctx.options.getInteger("from", true);
         const to = ctx.options.getInteger("to", true);
         const track = await Music.move(player, from - 1, to - 1);
-        if (!track) return ctx.reply({ content: `Positions must be between 1 and ${player.queue.tracks.length}.`, ephemeral: true });
+        if (!track) return ctx.reply({ content: `Positions must be between 1 and ${player.queue.tracks.length}.`, flags: MessageFlags.Ephemeral });
 
         return ctx.reply({ content: `↕️ Moved ${trackLink(track)} to #${to}.`, allowedMentions: { parse: [] } });
     }

@@ -15,6 +15,10 @@
                     <UiField label="Emoji" hint="A regular emoji, or a custom one as <:name:id>"><input v-model="draft.emoji" maxlength="64" class="input" /></UiField>
                 </div>
                 <UiToggle v-model="draft.allowSelfStar" label="Count the author's own reaction" />
+                <UiToggle v-model="draft.allowNsfw" label="Allow messages from age-restricted channels" description="Off: they never go on the starboard (unless the starboard channel is age-restricted too)." />
+                <UiField label="Ignored channels" hint="Messages here never go on the starboard.">
+                    <UiMultiPicker v-model="draft.ignoredChannelIds" :options="channelOptions" noun="channel" />
+                </UiField>
             </template>
         </UiCard>
 
@@ -24,4 +28,5 @@
 
 <script setup lang="ts">
 const { overview, draft, dirty, reset, saving, submit } = useSettingsSection("starboard");
+const channelOptions = computed(() => (overview.value?.channels ?? []).map((c) => ({ id: c.id, label: `#${c.name}` })));
 </script>

@@ -22,7 +22,7 @@
             </button>
             <span class="ml-auto text-xs text-zinc-500">{{ modelValue.length }}/{{ max }}</span>
         </div>
-        <div class="mt-3 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
+        <div v-if="!noPreview" class="mt-3 rounded-lg border border-zinc-800 bg-zinc-950 p-3">
             <div class="mb-1 text-xs font-medium tracking-wide text-zinc-500 uppercase">Preview</div>
             <p class="text-sm whitespace-pre-wrap text-zinc-200">{{ preview }}</p>
         </div>
@@ -38,6 +38,8 @@ const props = withDefaults(defineProps<{
     rows?: number;
     max?: number;
     sample?: Record<string, string>;
+    // Hide the built-in text preview (RichMessageEditor shows its own).
+    noPreview?: boolean;
 }>(), { rows: 3, max: 1500 });
 
 const emit = defineEmits<{ "update:modelValue": [value: string] }>();
@@ -47,21 +49,8 @@ const shownPlaceholders = computed(() => Object.fromEntries(
     Object.entries(props.placeholders).filter(([token]) => !props.only || props.only.includes(token))
 ));
 
-// Example values for the preview.
-const sampleValues = computed<Record<string, string>>(() => ({
-    "{user}": "vortexfan",
-    "{user.name}": "Vortex Fan",
-    "{user.mention}": "@Vortex Fan",
-    "{user.id}": "123456789012345678",
-    "{server}": "My Server",
-    "{memberCount}": "1,234",
-    "{channel}": "#general",
-    "{level}": "5",
-    "{args}": "some text",
-    ...props.sample
-}));
-
-const preview = computed(() => props.modelValue.replace(/\{[\w.]+\}/g, (m) => sampleValues.value[m] ?? m));
+// Example values for the preview (see utils/placeholders.ts).
+const preview = computed(() => fillSample(props.modelValue, props.sample));
 
 // Inserts a placeholder at the cursor.
 function insert(token: string) {

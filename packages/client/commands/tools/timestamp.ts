@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { parseDuration } from "../../lib/scheduler";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -31,12 +31,12 @@ export class TimestampCommand extends VortexCommand {
             if (!Number.isNaN(parsed.getTime())) date = parsed;
         }
 
-        if (!date) return ctx.reply({ content: "Try `in 2h`, `2026-12-31 18:00 UTC` or a unix timestamp.", ephemeral: true });
+        if (!date) return ctx.reply({ content: "Try `in 2h`, `2026-12-31 18:00 UTC` or a unix timestamp.", flags: MessageFlags.Ephemeral });
 
         const unix = Math.floor(date.getTime() / 1000);
         const lines = STYLES.map(([style, name]) => `<t:${unix}:${style}> · \`<t:${unix}:${style}>\` (${name})`);
         const embed = new VortexEmbed().setTitle("🕒 Discord timestamps").setDescription(`${lines.join("\n")}\n\nCopy a code and paste it in any message.`);
 
-        return ctx.reply({ embeds: [embed], ephemeral: true });
+        return ctx.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 }

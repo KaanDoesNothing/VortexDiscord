@@ -1,7 +1,7 @@
 import { Command } from "@sapphire/framework";
 import { SlashCommandBuilder } from "discord.js";
 import { Economy } from "../../lib/database";
-import { getCurrency } from "../../lib/economy";
+import { economyFor } from "../../lib/economy";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -23,10 +23,10 @@ export class LeaderboardCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const scope = ctx.options.getString("scope") === "global" || !ctx.guildId ? "global" : "server";
-        const [rows, currency] = await Promise.all([
-            scope === "global" ? Economy.globalLeaderboard(10) : Economy.serverLeaderboard(ctx.guildId!, 10),
-            getCurrency(ctx.guildId)
-        ]);
+        const eco = await economyFor(ctx.guildId);
+        // "This server": its own wallets in server mode, or the richest members here in global mode.
+        const rows = scope === "global" ? await Economy.leaderboard("global", 10)
+            : eco.mode === "server" ? await eco.leaderboard(10) : await Economy.globalLeaderboardForGuild(ctx.guildId!, 10);
 
         // Usernames for people the bot doesn't have cached.
         const names = await Promise.all(rows.map(async (r) => {
@@ -34,7 +34,7 @@ export class LeaderboardCommand extends VortexCommand {
             return user?.displayName ?? `Unknown (${r.id})`;
         }));
 
-        const lines = rows.map((r, i) => `${MEDALS[i] ?? `\`#${i + 1}\``} **${names[i]}**: ${currency.format(r.total)}`);
+        const lines = rows.map((r, i) => `${MEDALS[i] ?? `\`#${i + 1}\``} **${names[i]}**: ${eco.format(r.total)}`);
 
         const embed = new VortexEmbed()
             .setTitle(scope === "global" ? "🌍 Global leaderboard" : `🏆 ${ctx.guild!.name} leaderboard`)

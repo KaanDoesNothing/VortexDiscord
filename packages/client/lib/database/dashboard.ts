@@ -2,7 +2,7 @@ import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "./client";
 import { auditLog, commandLogs, guildMembers, guilds, memberEvents, modLogs } from "./schema";
 import { guildCache } from "./cache";
-import type { GuildSettings } from "../settings";
+import { resolveSettings, type GuildSettings } from "../settings";
 
 /** Read-heavy queries used by the web dashboard. */
 
@@ -75,6 +75,17 @@ export async function updateGuildSettings(guildId: string, update: { prefix?: st
     return row!;
 }
 
+// Merges a partial settings change into a server's settings (validated like dashboard input) and saves it.
+// For commands that change settings from Discord. Returns the new settings, or the validation errors.
+export async function patchSettings(guildId: string, partial: Record<string, unknown>) {
+    const { DBManager } = await import("./index");
+    const current = await DBManager.getGuildConfig(guildId);
+    const { settings, errors } = resolveSettings(partial, current.settings);
+    if (errors.length) return { errors, settings: current.settings };
+    await updateGuildSettings(guildId, { settings });
+    return { errors, settings };
+}
+
 export async function listModLogs(guildId: string, page: Page, type?: string) {
     const where = and(eq(modLogs.guildId, guildId), type ? eq(modLogs.type, type) : undefined);
 
@@ -102,7 +113,7 @@ export async function getLeaderboard(guildId: string, page: Page) {
 
     const [rows, [total]] = await Promise.all([
         db.select().from(guildMembers).where(where)
-            .orderBy(desc(guildMembers.level), desc(guildMembers.messages))
+            .orderBy(desc(guildMembers.xp))
             .limit(page.limit).offset(offset(page)),
         db.select({ total: count() }).from(guildMembers).where(where)
     ]);

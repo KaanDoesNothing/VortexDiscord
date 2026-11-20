@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder, time } from "discord.js";
-import { auditReason, checkModerationTarget } from "../../lib/moderation";
-import { logModAction } from "../../lib/modlog";
+import { SlashCommandBuilder, time, MessageFlags } from "discord.js";
+import { auditReason, checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget } from "../../lib/modlog";
 import { formatDuration, parseDuration } from "../../lib/scheduler";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
 
 // Discord's maximum timeout length.
@@ -29,17 +30,19 @@ export class TimeoutCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
+        const member = await fetchMember(ctx.guild!, user.id);
         const durationMs = parseDuration(ctx.options.getString("duration", true));
-        const reason = ctx.options.getString("reason") ?? "None";
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
 
-        if (!durationMs || durationMs > MAX_TIMEOUT) return ctx.reply({ content: "Give a duration like `10m`, `2h` or `1d` (up to 28 days).", ephemeral: true });
+        if (!durationMs || durationMs > MAX_TIMEOUT) return ctx.reply({ content: "Give a duration like `10m`, `2h` or `1d` (up to 28 days).", flags: MessageFlags.Ephemeral });
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
-        if (!member) return ctx.reply({ content: `${user.tag} isn't in this server.`, ephemeral: true });
-        if (!member.moderatable) return ctx.reply({ content: `I can't time out ${user.tag}: their role is above mine.`, ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
+        if (!member) return ctx.reply({ content: `${user.tag} isn't in this server.`, flags: MessageFlags.Ephemeral });
+        if (!member.moderatable) return ctx.reply({ content: `I can't time out ${user.tag}: their role is above mine.`, flags: MessageFlags.Ephemeral });
 
+        await notifyTarget(ctx.guild!, { type: "timeout", moderator: ctx.user, target: user, reason, durationMs });
         await member.timeout(durationMs, auditReason(ctx.user, reason));
         await logModAction(ctx.guild!, { type: "timeout", moderator: ctx.user, target: user, reason, durationMs });
 

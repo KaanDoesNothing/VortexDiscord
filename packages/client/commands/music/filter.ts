@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import type { Player } from "lavalink-client";
 import { MusicCommand } from "../../lib/music/command";
 
@@ -41,7 +41,7 @@ export class FilterCommand extends MusicCommand {
 
         const key = ctx.options.getString("effect", true);
         const preset = PRESETS[key];
-        if (!preset) return ctx.reply({ content: "Unknown effect.", ephemeral: true });
+        if (!preset) return ctx.reply({ content: "Unknown effect.", flags: MessageFlags.Ephemeral });
         const speed = ctx.options.getNumber("speed");
 
         await ctx.deferReply();

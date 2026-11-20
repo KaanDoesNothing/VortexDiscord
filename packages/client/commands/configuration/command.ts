@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { DBManager } from "../../lib/database";
 import { VortexCommand } from "../../lib/structures/command";
 
@@ -23,9 +23,9 @@ export class CommandCommand extends VortexCommand {
         const store = this.container.stores.get("commands");
         const command = store.get(query) ?? store.aliases.get(query);
 
-        if (!command) return ctx.reply({ content: `There's no command called \`${query}\`.`, ephemeral: true });
+        if (!command) return ctx.reply({ content: `There's no command called \`${query}\`.`, flags: MessageFlags.Ephemeral });
         // Disabling this one would make it impossible to turn anything back on from Discord.
-        if (command.name === this.name) return ctx.reply({ content: "This command can't be disabled.", ephemeral: true });
+        if (command.name === this.name) return ctx.reply({ content: "This command can't be disabled.", flags: MessageFlags.Ephemeral });
 
         const disabled = await DBManager.toggleCommand(ctx.guild!.id, command.name);
 

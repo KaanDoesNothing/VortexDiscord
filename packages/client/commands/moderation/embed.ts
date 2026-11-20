@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import { VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
 
@@ -29,7 +29,7 @@ export class EmbedCommand extends VortexCommand {
         const embed = new VortexEmbed().setTitle(title).setDescription(content);
 
         if (color) {
-            if (!/^#?[0-9a-f]{6}$/i.test(color)) return ctx.reply({ content: "Color must be a hex code like #ff8800.", ephemeral: true });
+            if (!/^#?[0-9a-f]{6}$/i.test(color)) return ctx.reply({ content: "Color must be a hex code like #ff8800.", flags: MessageFlags.Ephemeral });
             embed.setColor(parseInt(color.replace("#", ""), 16));
         }
 

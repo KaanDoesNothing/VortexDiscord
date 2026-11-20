@@ -3,7 +3,9 @@ import { ApiRoute } from "../../../lib/api/ApiRoute";
 import { ChannelType, PermissionFlagsBits } from "discord.js";
 import { requireGuildManager } from "../../../lib/api/auth";
 import { DBManager, Dashboard } from "../../../lib/database";
+import { twitchConfigured } from "../../../lib/feeds";
 import { PLACEHOLDERS } from "../../../lib/settings";
+import { STAT_PLACEHOLDERS } from "../../../lib/statsChannels";
 
 // GET /guilds/:guild: everything the dashboard needs for one server:
 // server info, its channels and roles (for pickers), current settings, and activity stats.
@@ -37,6 +39,10 @@ export class GuildOverviewRoute extends ApiRoute {
             .sort((a, b) => b.position - a.position)
             .map((r) => ({ id: r.id, name: r.name, color: r.hexColor, assignable: r.editable && !r.managed }));
 
+        // Voice channels (temp voice hubs, stats channels).
+        const voiceChannels = channels.filter((c) => c.type === ChannelType.GuildVoice || c.type === ChannelType.GuildStageVoice)
+            .sort((a, b) => a.position - b.position).map((c) => ({ id: c.id, name: c.name, canSend: true }));
+
         // Channel categories (for picking where tickets are created).
         const categories = channels.filter((c) => c.type === ChannelType.GuildCategory).sort((a, b) => a.position - b.position).map((c) => ({ id: c.id, name: c.name }));
 
@@ -54,9 +60,16 @@ export class GuildOverviewRoute extends ApiRoute {
             channels: textChannels,
             roles,
             categories,
+            voiceChannels,
             config,
             placeholders: PLACEHOLDERS,
-            features: { membersIntent: Bun.env.DISCORD_MEMBERS_INTENT === "true" },
+            features: {
+                membersIntent: Bun.env.DISCORD_MEMBERS_INTENT === "true",
+                twitch: twitchConfigured(),
+                // Features that need the bot to have Manage Server (invite tracking, lockdowns).
+                manageGuild: Boolean(me?.permissions.has(PermissionFlagsBits.ManageGuild))
+            },
+            statPlaceholders: STAT_PLACEHOLDERS,
             stats
         });
     }

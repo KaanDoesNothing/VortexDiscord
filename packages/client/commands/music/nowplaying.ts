@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
 import type { Track } from "lavalink-client";
 import { MusicCommand } from "../../lib/music/command";
 import { nowPlayingMessage } from "../../lib/music/ui";
@@ -18,7 +18,7 @@ export class NowPlayingCommand extends MusicCommand {
         const ready = await this.prepare(ctx, { sameChannel: false });
         if (!ready) return;
         const track = ready.player.queue.current;
-        if (!track) return ctx.reply({ content: "Nothing is playing right now.", ephemeral: true });
+        if (!track) return ctx.reply({ content: "Nothing is playing right now.", flags: MessageFlags.Ephemeral });
 
         return ctx.reply(nowPlayingMessage(ready.player, track as Track));
     }

@@ -1,8 +1,9 @@
 import { Command } from "@sapphire/framework";
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, MessageFlags } from "discord.js";
+import { fail } from "../../lib/structures/embed";
 import { VortexCommand } from "../../lib/structures/command";
-import { auditReason, checkModerationTarget } from "../../lib/moderation";
-import { logModAction, sendAppealDm } from "../../lib/modlog";
+import { auditReason, checkModerationTarget, fetchMember, moderationReason, REASON_REQUIRED } from "../../lib/moderation";
+import { logModAction, notifyTarget } from "../../lib/modlog";
 
 // /ban <user> [reason] [delete_days]: bans a member, or any user by ID even if they aren't in the server.
 export class BanCommand extends VortexCommand {
@@ -24,18 +25,19 @@ export class BanCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         const user = ctx.options.getUser("user", true);
-        const member = ctx.guild!.members.cache.get(user.id) ?? null;
-        const reason = ctx.options.getString("reason") ?? "None";
+        const member = await fetchMember(ctx.guild!, user.id);
+        const reason = await moderationReason(ctx);
+        if (reason === null) return ctx.reply(fail(REASON_REQUIRED));
         const deleteDays = ctx.options.getInteger("delete_days") ?? 0;
 
         const problem = checkModerationTarget(ctx, member, user);
-        if (problem) return ctx.reply({ content: problem, ephemeral: true });
+        if (problem) return ctx.reply({ content: problem, flags: MessageFlags.Ephemeral });
 
         // The bot's role must be above theirs.
-        if (member && !member.bannable) return ctx.reply({ content: `I can't ban ${user.tag}: their role is above mine.`, ephemeral: true });
+        if (member && !member.bannable) return ctx.reply({ content: `I can't ban ${user.tag}: their role is above mine.`, flags: MessageFlags.Ephemeral });
 
-        // Appeal DM (if enabled in the dashboard) has to go out before the ban.
-        await sendAppealDm(ctx.guild!, user);
+        // The DM (and appeal message) has to go out before the ban.
+        await notifyTarget(ctx.guild!, { type: "ban", moderator: ctx.user, target: user, reason });
 
         await ctx.guild!.bans.create(user.id, {
             reason: auditReason(ctx.user, reason),

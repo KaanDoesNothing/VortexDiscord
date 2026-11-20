@@ -1,4 +1,5 @@
-import type { ChatInputCommandInteraction, GuildMember, GuildTextBasedChannel, User } from "discord.js";
+import { MessageFlags, type ChatInputCommandInteraction, type Guild, type GuildMember, type GuildTextBasedChannel, type User } from "discord.js";
+import { DBManager } from "./database";
 
 // Checks whether the person running a moderation command may act on `target`.
 // Returns an error message to show, or null if it's allowed.
@@ -17,7 +18,7 @@ export function checkModerationTarget(ctx: ChatInputCommandInteraction, target: 
     // Not in the server: there's no role to compare.
     if (!target) return null;
 
-    const moderator = guild.members.cache.get(ctx.user.id);
+    const moderator = (ctx.member as GuildMember | null) ?? guild.members.cache.get(ctx.user.id);
     if (moderator && moderator.id !== guild.ownerId && target.roles.highest.position >= moderator.roles.highest.position) {
         return `You can't do that to ${targetUser.username}: their highest role is the same as or above yours.`;
     }
@@ -34,7 +35,7 @@ export const auditReason = (moderator: User, reason: string) => `${moderator.use
 export async function setChannelLocked(ctx: ChatInputCommandInteraction, locked: boolean) {
     const channel = (ctx.options.getChannel("channel") ?? ctx.channel) as GuildTextBasedChannel | null;
     const reason = ctx.options.getString("reason");
-    if (!channel || !("permissionOverwrites" in channel)) return ctx.reply({ content: "That channel can't be locked.", ephemeral: true });
+    if (!channel || !("permissionOverwrites" in channel)) return ctx.reply({ content: "That channel can't be locked.", flags: MessageFlags.Ephemeral });
 
     await channel.permissionOverwrites.edit(ctx.guild!.roles.everyone, { SendMessages: locked ? false : null }, { reason: auditReason(ctx.user, reason ?? (locked ? "Locked" : "Unlocked")) });
 
@@ -43,3 +44,20 @@ export async function setChannelLocked(ctx: ChatInputCommandInteraction, locked:
 
     return ctx.reply({ content: channel.id === ctx.channelId ? notice : `${channel} has been ${locked ? "locked" : "unlocked"}.` });
 }
+
+// The member for a user ID, from the cache or Discord. On big servers most members aren't cached,
+// so cache-only lookups wrongly report "not in this server".
+export async function fetchMember(guild: Guild, userId: string): Promise<GuildMember | null> {
+    return guild.members.cache.get(userId) ?? await guild.members.fetch(userId).catch(() => null);
+}
+
+// The reason given to a moderation command. Returns null when the server requires a reason
+// (Dashboard → Moderation → "Require a reason") and none was given.
+export async function moderationReason(ctx: ChatInputCommandInteraction): Promise<string | null> {
+    const given = ctx.options.getString("reason")?.trim();
+    if (given) return given;
+    const { settings } = await DBManager.getGuildConfig(ctx.guildId!);
+    return settings.moderation.requireReason ? null : "None";
+}
+
+export const REASON_REQUIRED = "This server requires a reason for moderation actions. Add one with the `reason` option.";

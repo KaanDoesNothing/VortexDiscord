@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder } from "discord.js";
-import { DBManager } from "../../lib/database";
-import { ECONOMY, getCurrency } from "../../lib/economy";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, SlashCommandBuilder, MessageFlags } from "discord.js";
+import { ECONOMY, economyFor } from "../../lib/economy";
 import { handValue, isBlackjack, newDeck, playDealer, settleBlackjack, showHand, type BlackjackOutcome, type Card } from "../../lib/games";
 import { replyAndFetch, VortexCommand } from "../../lib/structures/command";
 import { VortexEmbed } from "../../lib/structures/embed";
@@ -28,11 +27,14 @@ export class BlackjackCommand extends VortexCommand {
 
     public override async chatInputRun(ctx: Command.ChatInputCommandInteraction) {
         let bet = ctx.options.getInteger("bet", true);
-        const currency = await getCurrency(ctx.guildId);
+        const eco = await economyFor(ctx.guildId);
+        // The server can turn gambling off or cap bets (Dashboard → Economy).
+        const betProblem = eco.checkBet(bet);
+        if (betProblem) return ctx.reply({ content: betProblem, flags: MessageFlags.Ephemeral });
 
         // Take the bet now.
-        if (await DBManager.adjustBalance(ctx.user.id, -bet, bet) === null) {
-            return ctx.reply({ content: `You don't have ${currency.format(bet)} to bet.`, ephemeral: true });
+        if (await eco.adjust(ctx.user.id, -bet, bet) === null) {
+            return ctx.reply({ content: `You don't have ${eco.format(bet)} to bet.`, flags: MessageFlags.Ephemeral });
         }
 
         const deck = newDeck();
@@ -57,10 +59,10 @@ export class BlackjackCommand extends VortexCommand {
             if (handValue(player) <= 21 && !isBlackjack(player)) playDealer(dealer, deck);
             const { outcome, returnMultiplier } = settleBlackjack(player, dealer);
             const payout = Math.floor(bet * returnMultiplier);
-            const balance = payout > 0 ? await DBManager.adjustBalance(ctx.user.id, payout) : (await DBManager.getUser(ctx.user.id)).balance;
+            const balance = payout > 0 ? await eco.adjust(ctx.user.id, payout) : (await eco.wallet(ctx.user.id)).balance;
 
             const net = payout - bet;
-            const summary = `${RESULT_TEXT[outcome]}\n${net >= 0 ? `+${currency.format(net)}` : `-${currency.format(-net)}`} · Wallet: ${currency.format(balance ?? 0)}`;
+            const summary = `${RESULT_TEXT[outcome]}\n${net >= 0 ? `+${eco.format(net)}` : `-${eco.format(-net)}`} · Wallet: ${eco.format(balance ?? 0)}`;
             return { embeds: [render(true).setDescription(summary).setColor(net > 0 ? 0x30a46c : net < 0 ? 0xe5484d : 0x8e8c99)], components: [] };
         };
 
@@ -78,8 +80,8 @@ export class BlackjackCommand extends VortexCommand {
         collector.on("collect", async (i) => {
             if (i.customId === "double") {
                 // Doubling needs another `bet` in the wallet.
-                if (await DBManager.adjustBalance(ctx.user.id, -bet, bet) === null) {
-                    return i.reply({ content: "You don't have enough to double down.", ephemeral: true });
+                if (await eco.adjust(ctx.user.id, -bet, bet) === null) {
+                    return i.reply({ content: "You don't have enough to double down.", flags: MessageFlags.Ephemeral });
                 }
                 bet *= 2;
                 player.push(deck.pop()!);

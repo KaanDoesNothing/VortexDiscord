@@ -142,7 +142,7 @@ export async function getRolePanel(id: number) {
     return row ?? null;
 }
 
-export async function saveRolePanel(guildId: string, input: Pick<RolePanel, "channelId" | "title" | "description" | "roles" | "mode">, id?: number) {
+export async function saveRolePanel(guildId: string, input: Pick<RolePanel, "channelId" | "title" | "description" | "roles" | "mode" | "style">, id?: number) {
     if (id) {
         const [row] = await db.update(rolePanels).set(input).where(and(eq(rolePanels.id, id), eq(rolePanels.guildId, guildId))).returning();
         return row ?? null;
@@ -178,14 +178,22 @@ export async function deleteStarboardEntry(guildId: string, messageId: string) {
 
 // ---------- Rank ----------
 
-// A member's position on the server's level leaderboard (1 = top), or null if they have no data.
+// A member's position on the server's XP leaderboard (1 = top), or null if they have no data.
 export async function getRank(guildId: string, userId: string) {
     const [me] = await db.select().from(guildMembers).where(and(eq(guildMembers.guildId, guildId), eq(guildMembers.userId, userId)));
     if (!me) return null;
 
     const [above] = await db.select({ n: count() }).from(guildMembers).where(and(
         eq(guildMembers.guildId, guildId),
-        sql`(${guildMembers.level} > ${me.level} OR (${guildMembers.level} = ${me.level} AND ${guildMembers.messages} > ${me.messages}))`
+        sql`${guildMembers.xp} > ${me.xp}`
     ));
     return { ...me, rank: (above?.n ?? 0) + 1 };
+}
+
+// Top members by XP (for /levels and the public leaderboard page).
+export async function topByXp(guildId: string, limit: number, offset = 0) {
+    return db.select().from(guildMembers)
+        .where(and(eq(guildMembers.guildId, guildId), sql`${guildMembers.xp} > 0`))
+        .orderBy(desc(guildMembers.xp))
+        .limit(limit).offset(offset);
 }
